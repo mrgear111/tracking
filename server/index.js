@@ -11,10 +11,13 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000', credentials: true }));
+// Trust proxy when deployed (Railway, Vercel, etc.)
+app.set('trust proxy', 1);
 
-// If you're running behind a proxy (e.g., when deployed), uncomment the next line
-// app.set('trust proxy', 1);
+app.use(cors({ 
+  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000', 
+  credentials: true 
+}));
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'change-me',
@@ -22,8 +25,9 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    secure: false, // set to true if you're serving over HTTPS
-    sameSite: 'lax', // 'lax' is generally suitable for OAuth flows
+    secure: process.env.NODE_ENV === 'production', // true in production (HTTPS)
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site cookies in production
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
   },
 }));
 
