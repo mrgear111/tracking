@@ -1,0 +1,193 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Navbar from '../components/Navbar.astro';
+---
+
+<Layout title="Admin Dashboard - GITGOTPR">
+  <Navbar />
+  
+  <main class="min-h-screen bg-black text-green-100 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-green-400 font-mono mb-2">Admin Dashboard</h1>
+        <p class="text-green-300 font-mono">Monitor user activity and PR statistics</p>
+      </div>
+
+      <div id="loading" class="text-center py-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto"></div>
+        <p class="mt-4 text-green-300 font-mono">Loading dashboard data...</p>
+      </div>
+
+      <div id="error" class="hidden bg-red-900 border border-red-600 rounded-lg p-4 mb-6">
+        <p class="text-red-100 font-mono">Error loading data. Please try again.</p>
+      </div>
+
+      <div id="dashboard-content" class="hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <p class="text-green-300 font-mono text-sm">Total Users</p>
+            <p class="text-2xl font-bold text-green-100 font-mono" id="total-users">-</p>
+          </div>
+          <div class="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <p class="text-green-300 font-mono text-sm">Total PRs</p>
+            <p class="text-2xl font-bold text-green-100 font-mono" id="total-prs">-</p>
+          </div>
+          <div class="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <p class="text-green-300 font-mono text-sm">Open PRs</p>
+            <p class="text-2xl font-bold text-green-100 font-mono" id="open-prs">-</p>
+          </div>
+          <div class="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <p class="text-green-300 font-mono text-sm">Merged PRs</p>
+            <p class="text-2xl font-bold text-green-100 font-mono" id="merged-prs">-</p>
+          </div>
+        </div>
+
+        <div class="bg-gray-900 border border-green-600 rounded-lg overflow-hidden">
+          <div class="px-6 py-4 border-b border-green-600">
+            <h2 class="text-xl font-semibold text-green-400 font-mono">Registered Users</h2>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="min-w-full">
+              <thead class="bg-gray-800">
+                <tr>
+                  <th class="px-6 py-3 text-left text-xs font-mono text-green-300">User</th>
+                  <th class="px-6 py-3 text-left text-xs font-mono text-green-300">Username</th>
+                  <th class="px-6 py-3 text-left text-xs font-mono text-green-300">PR Count</th>
+                  <th class="px-6 py-3 text-left text-xs font-mono text-green-300">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body" class="bg-gray-900">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pr-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div class="bg-gray-900 border border-green-600 rounded-lg max-w-4xl w-full max-h-96 overflow-y-auto">
+        <div class="px-6 py-4 border-b border-green-600 flex justify-between items-center">
+          <h3 class="text-xl font-semibold text-green-400 font-mono" id="modal-title">User PRs</h3>
+          <button id="close-modal" class="text-green-300 hover:text-green-100 text-xl">&times;</button>
+        </div>
+        <div class="p-6" id="modal-content"></div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const API_BASE = 'http://localhost:4000';
+  let adminPassword = localStorage.getItem('adminPassword') || '';
+
+  // Check if admin is authenticated
+  function checkAdminAuth() {
+    if (!adminPassword) {
+      const password = prompt('Enter admin password:');
+      if (!password) {
+        window.location.href = '/';
+        return false;
+      }
+      adminPassword = password;
+      localStorage.setItem('adminPassword', password);
+    }
+    return true;
+  }
+
+  async function loadDashboardData() {
+    if (!checkAdminAuth()) return;
+    
+    try {
+      // Load stats with admin password
+      const statsResponse = await fetch(API_BASE + '/admin/stats?adminPassword=' + encodeURIComponent(adminPassword));
+      
+      if (statsResponse.status === 401) {
+        localStorage.removeItem('adminPassword');
+        alert('Invalid admin password. Please try again.');
+        window.location.reload();
+        return;
+      }
+      
+      const stats = await statsResponse.json();
+      document.getElementById('total-users').textContent = stats.totalUsers;
+      document.getElementById('total-prs').textContent = stats.totalPRs;
+      document.getElementById('open-prs').textContent = stats.openPRs;
+      document.getElementById('merged-prs').textContent = stats.mergedPRs;
+
+      const usersResponse = await fetch(API_BASE + '/admin/users?adminPassword=' + encodeURIComponent(adminPassword));
+      
+      if (usersResponse.status === 401) {
+        localStorage.removeItem('adminPassword');
+        alert('Session expired. Please login again.');
+        window.location.reload();
+        return;
+      }
+      
+      const usersData = await usersResponse.json();
+      const tableBody = document.getElementById('users-table-body');
+      tableBody.innerHTML = '';
+
+      usersData.users.forEach(user => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-800 border-t border-green-700';
+        row.innerHTML = '<td class="px-6 py-4"><div class="flex items-center"><img class="h-10 w-10 rounded-full" src="' + (user.avatar_url || '/default-avatar.png') + '" alt="' + user.username + '"><div class="ml-4 text-sm font-mono text-green-100">' + (user.display_name || user.username) + '</div></div></td><td class="px-6 py-4 text-sm text-green-300 font-mono">@' + user.username + '</td><td class="px-6 py-4 text-sm text-green-100 font-mono">' + user.pr_count + '</td><td class="px-6 py-4 text-sm"><button onclick="viewUserPRs(' + user.id + ', \'' + user.username + '\')" class="text-green-400 hover:text-green-300 font-mono">View PRs</button></td>';
+        tableBody.appendChild(row);
+      });
+
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('dashboard-content').classList.remove('hidden');
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('error').classList.remove('hidden');
+    }
+  }
+
+  async function viewUserPRs(userId, username) {
+    try {
+      const adminPassword = localStorage.getItem('adminPassword');
+      const response = await fetch(API_BASE + '/admin/users/' + userId + '/prs?adminPassword=' + encodeURIComponent(adminPassword));
+      
+      if (response.status === 401) {
+        localStorage.removeItem('adminPassword');
+        alert('Session expired. Please login again.');
+        window.location.reload();
+        return;
+      }
+      
+      const data = await response.json();
+      const modalTitle = document.getElementById('modal-title');
+      const modalContent = document.getElementById('modal-content');
+      modalTitle.textContent = 'PRs by @' + username;
+      
+      if (data.prs.length === 0) {
+        modalContent.innerHTML = '<p class="text-green-300 font-mono">No PRs found.</p>';
+      } else {
+        let html = '<div class="space-y-4">';
+        data.prs.forEach(pr => {
+          const createdDate = new Date(pr.created_at).toLocaleDateString();
+          const statusIcon = pr.state === 'open' ? '🟢' : '🟣';
+          html += '<div class="border border-green-700 rounded-lg p-4"><div class="flex justify-between items-start mb-2"><h4 class="text-green-100 font-mono">' + statusIcon + ' ' + pr.title + '</h4><span class="text-green-400 text-sm font-mono">#' + pr.pr_number + '</span></div><p class="text-green-300 text-sm font-mono mb-2">' + pr.repository + '</p><p class="text-green-400 text-sm font-mono mb-2">Created: ' + createdDate + '</p><a href="' + pr.url + '" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm font-mono">View on GitHub →</a></div>';
+        });
+        html += '</div>';
+        modalContent.innerHTML = html;
+      }
+      document.getElementById('pr-modal').classList.remove('hidden');
+    } catch (error) {
+      console.error('Error loading user PRs:', error);
+    }
+  }
+
+  document.getElementById('close-modal').addEventListener('click', () => {
+    document.getElementById('pr-modal').classList.add('hidden');
+  });
+
+  document.getElementById('pr-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'pr-modal') {
+      document.getElementById('pr-modal').classList.add('hidden');
+    }
+  });
+
+  loadDashboardData();
+  window.viewUserPRs = viewUserPRs;
+</script>
