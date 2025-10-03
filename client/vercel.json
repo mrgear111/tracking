@@ -1,0 +1,11 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "astro",
+  "regions": ["iad1"],
+  "env": {
+    "PUBLIC_API_URL": "@public_api_url"
+  }
+}
