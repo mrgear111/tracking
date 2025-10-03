@@ -34,7 +34,7 @@
 					<div id="auth-status" class="text-center text-sm"></div>
 					
 					<div id="login-section">
-						<a href={(import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000') + '/auth/github'}
+						<a href={(import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app') + '/auth/github'}
 						   class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors font-mono">
 							<span class="absolute left-0 inset-y-0 flex items-center pl-3">
 								<svg class="h-5 w-5 text-gray-400 group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
@@ -82,7 +82,7 @@
 				const userAvatar = document.getElementById('user-avatar');
 				const userName = document.getElementById('user-name');
 				const userUsername = document.getElementById('user-username');
-				const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000';
+				const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
 
 				try {
 					const res = await fetch(API_BASE + '/auth/me', { 
