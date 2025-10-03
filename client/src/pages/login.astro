@@ -3,14 +3,8 @@
 
 <html lang="en">
 	<head>
-		<meta charset="utf-8						<div class="mt-4 flex space-x-3">
-							<a href="/" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors font-mono">
-								Go to Dashboard
-							</a>
-							<a href={`${import.meta.env.PUBLIC_API_URL || 'http://localhost:4000'}/auth/logout`} class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors font-mono">
-								Sign out
-							</a>
-						</div>link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<title>Login - GITGOTPR</title>
@@ -40,7 +34,7 @@
 					<div id="auth-status" class="text-center text-sm"></div>
 					
 					<div id="login-section">
-						<a href={`${import.meta.env.PUBLIC_API_URL || 'http://localhost:4000'}/auth/github`}
+						<a href={(import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000') + '/auth/github'}
 						   class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors font-mono">
 							<span class="absolute left-0 inset-y-0 flex items-center pl-3">
 								<svg class="h-5 w-5 text-gray-400 group-hover:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
@@ -64,7 +58,7 @@
 								<a href="/" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors font-mono">
 									Go to Dashboard
 								</a>
-								<a href="http://localhost:4000/auth/logout" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors font-mono">
+								<a href={(import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000') + '/auth/logout'} class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors font-mono">
 									Sign out
 								</a>
 							</div>
@@ -87,13 +81,15 @@
 				const userSection = document.getElementById('user-section');
 				const userAvatar = document.getElementById('user-avatar');
 				const userName = document.getElementById('user-name');
-			const userUsername = document.getElementById('user-username');
+				const userUsername = document.getElementById('user-username');
+				const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000';
 
-			try {
-				const API_BASE = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
-				const res = await fetch(`${API_BASE}/auth/me`, { 
-					credentials: 'include' 
-				});					if (res.ok) {
+				try {
+					const res = await fetch(API_BASE + '/auth/me', { 
+						credentials: 'include' 
+					});
+					
+					if (res.ok) {
 						const data = await res.json();
 						if (data.authenticated && data.user) {
 							// User is logged in

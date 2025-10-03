@@ -69,10 +69,10 @@
   async function renderAuthArea() {
     const authArea = document.getElementById('auth-area');
     const loginLinks = document.querySelectorAll('a[href="/login"]');
+    const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000';
     
     try {
-      const API_BASE = import.meta.env.PUBLIC_API_URL || 'http://localhost:4000';
-      const res = await fetch(`${API_BASE}/auth/me`, { credentials: 'include' });
+      const res = await fetch(API_BASE + '/auth/me', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated && data.user) {
