@@ -1,603 +1,69 @@
-------
-
-import Layout from "../layouts/Layout.astro";import Layout from "../layouts/Layout.astro";
-
-import Navbar from "../components/Navbar.astro";import Navbar from "../components/Navbar.astro";
-
-import Footer from "../components/Footer.astro";import Footer from "../components/Footer.astro";
-
-------
-
-
-
-<Layout title="Leaderboard - Hacktoberfest 2025"><Layout title="Leaderboard - Hacktoberfest 2025">
-
-  <Fragment slot="navbar">  <Fragment slot="navbar">
-
-    <Navbar />    <Navbar />
-
-  </Fragment>  </Fragment>
-
-
-
-  <section class="py-16">  <section class="py-16">
-
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-      <div class="text-center mb-12">      <div class="text-center mb-12">
-
-        <h1 class="text-4xl font-bold text-gray-900 mb-4 font-mono">Leaderboard</h1>        <h1 class="text-4xl font-bold text-gray-900 mb-4 font-mono">Leaderboard</h1>
-
-        <p class="text-xl text-gray-600 max-w-2xl mx-auto font-mono">        <p class="text-xl text-gray-600 max-w-2xl mx-auto font-mono">
-
-          See who's leading the pack in Hacktoberfest 2025 contributions          See who's leading the pack in Hacktoberfest 2025 contributions
-
-        </p>        </p>
-
-      </div>      </div>
-
-
-
-      <!-- Loading State -->      <!-- Loading State -->
-
-      <div id="loading" class="text-center py-16">      <div id="loading" class="text-center py-16">
-
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-
-        <p class="mt-4 text-gray-600 font-mono">Loading leaderboard...</p>        <p class="mt-4 text-gray-600 font-mono">Loading leaderboard...</p>
-
-      </div>      </div>
-
-
-
-      <!-- Error State -->      <!-- Error State -->
-
-      <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 mb-8">      <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
-
-        <h3 class="text-red-800 font-semibold font-mono mb-2">Backend Connection Error</h3>        <h3 class="text-red-800 font-semibold font-mono mb-2">Backend Connection Error</h3>
-
-        <p id="error-message" class="text-red-700 font-mono text-sm"></p>        <p id="error-message" class="text-red-700 font-mono text-sm"></p>
-
-      </div>      </div>
-
-
-
-      <!-- Podium Section -->      <!-- Podium Section -->
-
-      <div id="podium" class="mb-16 text-center hidden"></div>      <div id="podium" class="mb-16 text-center hidden"></div>
-
-
-
-      <!-- Full Rankings -->      <!-- Full Rankings -->
-
-      <div id="leaderboard-table" class="bg-white rounded-lg shadow-lg overflow-hidden hidden">      <div id="leaderboard-table" class="bg-white rounded-lg shadow-lg overflow-hidden hidden">
-
-        <div class="px-6 py-4 bg-green-600 text-white">        <div class="px-6 py-4 bg-green-600 text-white">
-
-          <h2 class="text-xl font-semibold font-mono">Full Rankings</h2>          <h2 class="text-xl font-semibold font-mono">Full Rankings</h2>
-
-        </div>        </div>
-
-        <div class="overflow-x-auto">        <div class="overflow-x-auto">
-
-          <table class="min-w-full">          <table class="min-w-full">
-
-            <thead class="bg-gray-50">            <thead class="bg-gray-50">
-
-              <tr>              <tr>
-
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Rank</th>                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Rank</th>
-
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Contributor</th>                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Contributor</th>
-
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">GitHub</th>                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">GitHub</th>
-
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Total PRs</th>                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Total PRs</th>
-
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Merged PRs</th>                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Merged PRs</th>
-
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Badge</th>                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Badge</th>
-
-              </tr>              </tr>
-
-            </thead>            </thead>
-
-            <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200"></tbody>            <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200"></tbody>
-
-          </table>          </table>
-
-        </div>        </div>
-
-      </div>      </div>
-
-
-
-      <!-- Points System -->      <!-- Points System -->
-
-      <div class="mt-12 bg-gray-50 rounded-lg p-8">      <div class="mt-12 bg-gray-50 rounded-lg p-8">
-
-        <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center font-mono">How Points Are Calculated</h3>        <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center font-mono">How Points Are Calculated</h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-
-          <div class="text-center">          <div class="text-center">
-
-            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Pull Requests</h4>            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Pull Requests</h4>
-
-            <p class="text-3xl font-bold text-green-600 mb-2 font-mono">10 points each</p>            <p class="text-3xl font-bold text-green-600 mb-2 font-mono">10 points each</p>
-
-          </div>          </div>
-
-          <div class="text-center">          <div class="text-center">
-
-            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Issues Resolved</h4>            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Issues Resolved</h4>
-
-            <p class="text-3xl font-bold text-green-600 mb-2 font-mono">5 points each</p>            <p class="text-3xl font-bold text-green-600 mb-2 font-mono">5 points each</p>
-
-          </div>          </div>
-
-          <div class="text-center">          <div class="text-center">
-
-            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Quality Bonus</h4>            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Quality Bonus</h4>
-
-            <p class="text-gray-600 font-mono">Extra points for exceptional contributions</p>            <p class="text-gray-600 font-mono">Extra points for exceptional contributions</p>
-
-          </div>          </div>
-
-        </div>        </div>
-
-      </div>      </div>
-
-    </div>    </div>
-
-  </section>  </section>
-
-
-
-  <Footer />  <Footer />
-
-</Layout></Layout>
-
-
-
-<script><script>
-
-  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';  const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
-
-    
-
-  interface LeaderboardEntry {  async function loadLeaderboard() {
-
-    username: string;    try {
-
-    display_name: string;      const res = await fetch(`${API_BASE_URL}/leaderboard`);
-
-    avatar_url: string;      
-
-    total_prs: number;      if (!res.ok) {
-
-    merged_prs: number;        throw new Error(`API Error: ${res.status} ${res.statusText}`);
-
-  }      }
-
-        
-
-  async function loadLeaderboard() {      const leaderboard = await res.json();
-
-    try {      
-
-      const res = await fetch(`${API_BASE_URL}/leaderboard`);      // Hide loading
-
-            document.getElementById('loading')?.classList.add('hidden');
-
-      if (!res.ok) {      
-
-        throw new Error(`API Error: ${res.status} ${res.statusText}`);      // Show podium if we have at least 3 users
-
-      }      if (leaderboard.length >= 3) {
-
-              renderPodium(leaderboard);
-
-      const leaderboard: LeaderboardEntry[] = await res.json();      }
-
-            
-
-      // Hide loading      // Show full leaderboard table
-
-      document.getElementById('loading')?.classList.add('hidden');      renderLeaderboardTable(leaderboard);
-
-            
-
-      // Show podium if we have at least 3 users    } catch (err) {
-
-      if (leaderboard.length >= 3) {      console.error('Leaderboard fetch error:', err);
-
-        renderPodium(leaderboard);      document.getElementById('loading')?.classList.add('hidden');
-
-      }      const errorDiv = document.getElementById('error');
-
-            const errorMsg = document.getElementById('error-message');
-
-      // Show full leaderboard table      if (errorDiv && errorMsg) {
-
-      renderLeaderboardTable(leaderboard);        errorDiv.classList.remove('hidden');
-
-              errorMsg.textContent = err instanceof Error ? err.message : 'Failed to load leaderboard';
-
-    } catch (err) {      }
-
-      console.error('Leaderboard fetch error:', err);    }
-
-      document.getElementById('loading')?.classList.add('hidden');  }
-
-      const errorDiv = document.getElementById('error');  
-
-      const errorMsg = document.getElementById('error-message');  function renderPodium(leaderboard: any[]) {
-
-      if (errorDiv && errorMsg) {    const podium = document.getElementById('podium');
-
-        errorDiv.classList.remove('hidden');    if (!podium) return;
-
-        errorMsg.textContent = err instanceof Error ? err.message : 'Failed to load leaderboard';    
-
-      }    podium.innerHTML = `
-
-    }      <div class="flex justify-center items-end space-x-8 mb-8">
-
-  }        <!-- 2nd Place -->
-
-          <div class="bg-gray-100 rounded-lg p-6 w-40 h-48 flex flex-col items-center justify-between">
-
-  function renderPodium(leaderboard: LeaderboardEntry[]) {          <div class="text-center">
-
-    const podium = document.getElementById('podium');            <img src="${leaderboard[1]?.avatar_url}" alt="${leaderboard[1]?.username}" class="w-16 h-16 rounded-full mx-auto mb-2" />
-
-    if (!podium) return;            <h3 class="font-bold text-base font-mono truncate max-w-full">${leaderboard[1]?.display_name || leaderboard[1]?.username}</h3>
-
-                <p class="text-xs text-gray-600 font-mono truncate max-w-full">@${leaderboard[1]?.username}</p>
-
-    podium.innerHTML = `            <p class="text-xl font-bold text-gray-700 font-mono mt-2">${leaderboard[1]?.merged_prs} PRs</p>
-
-      <div class="flex justify-center items-end space-x-8 mb-8">            <p class="text-xs text-gray-500 font-mono">merged</p>
-
-        <!-- 2nd Place -->          </div>
-
-        <div class="bg-gray-100 rounded-lg p-6 w-40 h-48 flex flex-col items-center justify-between">          <div class="text-2xl font-bold text-gray-500 font-mono">🥈</div>
-
-          <div class="text-center">        </div>
-
-            <img src="${leaderboard[1]?.avatar_url}" alt="${leaderboard[1]?.username}" class="w-16 h-16 rounded-full mx-auto mb-2" />        
-
-            <h3 class="font-bold text-base font-mono truncate max-w-full">${leaderboard[1]?.display_name || leaderboard[1]?.username}</h3>        <!-- 1st Place -->
-
-            <p class="text-xs text-gray-600 font-mono truncate max-w-full">@${leaderboard[1]?.username}</p>        <div class="bg-yellow-100 rounded-lg p-6 w-40 h-56 flex flex-col items-center justify-between border-4 border-yellow-400">
-
-            <p class="text-xl font-bold text-gray-700 font-mono mt-2">${leaderboard[1]?.merged_prs} PRs</p>          <div class="text-center">
-
-            <p class="text-xs text-gray-500 font-mono">merged</p>            <img src="${leaderboard[0]?.avatar_url}" alt="${leaderboard[0]?.username}" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-yellow-500" />
-
-          </div>            <h3 class="font-bold text-base font-mono truncate max-w-full">${leaderboard[0]?.display_name || leaderboard[0]?.username}</h3>
-
-          <div class="text-2xl font-bold text-gray-500 font-mono">🥈</div>            <p class="text-xs text-gray-600 font-mono truncate max-w-full">@${leaderboard[0]?.username}</p>
-
-        </div>            <p class="text-2xl font-bold text-yellow-700 font-mono mt-2">${leaderboard[0]?.merged_prs} PRs</p>
-
-                    <p class="text-xs text-yellow-600 font-mono">merged</p>
-
-        <!-- 1st Place -->          </div>
-
-        <div class="bg-yellow-100 rounded-lg p-6 w-40 h-56 flex flex-col items-center justify-between border-4 border-yellow-400">          <div class="text-3xl font-bold text-yellow-600 font-mono">👑</div>
-
-          <div class="text-center">        </div>
-
-            <img src="${leaderboard[0]?.avatar_url}" alt="${leaderboard[0]?.username}" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-yellow-500" />        
-
-            <h3 class="font-bold text-base font-mono truncate max-w-full">${leaderboard[0]?.display_name || leaderboard[0]?.username}</h3>        <!-- 3rd Place -->
-
-            <p class="text-xs text-gray-600 font-mono truncate max-w-full">@${leaderboard[0]?.username}</p>        <div class="bg-orange-100 rounded-lg p-6 w-40 h-44 flex flex-col items-center justify-between">
-
-            <p class="text-2xl font-bold text-yellow-700 font-mono mt-2">${leaderboard[0]?.merged_prs} PRs</p>          <div class="text-center">
-
-            <p class="text-xs text-yellow-600 font-mono">merged</p>            <img src="${leaderboard[2]?.avatar_url}" alt="${leaderboard[2]?.username}" class="w-14 h-14 rounded-full mx-auto mb-2" />
-
-          </div>            <h3 class="font-bold text-base font-mono truncate max-w-full">${leaderboard[2]?.display_name || leaderboard[2]?.username}</h3>
-
-          <div class="text-3xl font-bold text-yellow-600 font-mono">👑</div>            <p class="text-xs text-gray-600 font-mono truncate max-w-full">@${leaderboard[2]?.username}</p>
-
-        </div>            <p class="text-xl font-bold text-orange-700 font-mono mt-2">${leaderboard[2]?.merged_prs} PRs</p>
-
-                    <p class="text-xs text-orange-600 font-mono">merged</p>
-
-        <!-- 3rd Place -->          </div>
-
-        <div class="bg-orange-100 rounded-lg p-6 w-40 h-44 flex flex-col items-center justify-between">          <div class="text-2xl font-bold text-orange-500 font-mono">🥉</div>
-
-          <div class="text-center">        </div>
-
-            <img src="${leaderboard[2]?.avatar_url}" alt="${leaderboard[2]?.username}" class="w-14 h-14 rounded-full mx-auto mb-2" />      </div>
-
-            <h3 class="font-bold text-base font-mono truncate max-w-full">${leaderboard[2]?.display_name || leaderboard[2]?.username}</h3>    `;
-
-            <p class="text-xs text-gray-600 font-mono truncate max-w-full">@${leaderboard[2]?.username}</p>    podium.classList.remove('hidden');
-
-            <p class="text-xl font-bold text-orange-700 font-mono mt-2">${leaderboard[2]?.merged_prs} PRs</p>  }
-
-            <p class="text-xs text-orange-600 font-mono">merged</p>  
-
-          </div>  function renderLeaderboardTable(leaderboard: any[]) {
-
-          <div class="text-2xl font-bold text-orange-500 font-mono">🥉</div>    const tableBody = document.getElementById('leaderboard-body');
-
-        </div>    const table = document.getElementById('leaderboard-table');
-
-      </div>    
-
-    `;    if (!tableBody || !table) return;
-
-    podium.classList.remove('hidden');    
-
-  }    if (leaderboard.length === 0) {
-
-        tableBody.innerHTML = `
-
-  function renderLeaderboardTable(leaderboard: LeaderboardEntry[]) {        <tr>
-
-    const tableBody = document.getElementById('leaderboard-body');          <td colspan="6" class="px-6 py-16 text-center">
-
-    const table = document.getElementById('leaderboard-table');            <h3 class="text-xl font-bold text-gray-900 mb-4 font-mono">Leaderboard Coming Soon</h3>
-
-                <p class="text-gray-600 mb-8 max-w-md mx-auto font-mono">
-
-    if (!tableBody || !table) return;              Once contributors start participating, you'll see detailed rankings here.
-
-                </p>
-
-    if (leaderboard.length === 0) {            <a href="/login" class="inline-block bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold font-mono">
-
-      tableBody.innerHTML = `              Sign in to Participate
-
-        <tr>            </a>
-
-          <td colspan="6" class="px-6 py-16 text-center">          </td>
-
-            <h3 class="text-xl font-bold text-gray-900 mb-4 font-mono">Leaderboard Coming Soon</h3>        </tr>
-
-            <p class="text-gray-600 mb-8 max-w-md mx-auto font-mono">      `;
-
-              Once contributors start participating, you'll see detailed rankings here.    } else {
-
-            </p>      tableBody.innerHTML = leaderboard.map((entry, index) => {
-
-            <a href="/login" class="inline-block bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold font-mono">        const badge = index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
-
-              Sign in to Participate        const rowClass = index < 3 ? 'bg-yellow-50' : '';
-
-            </a>        
-
-          </td>        return `
-
-        </tr>          <tr class="${rowClass}">
-
-      `;            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
-
-    } else {              #${index + 1}
-
-      tableBody.innerHTML = leaderboard.map((entry, index) => {            </td>
-
-        const badge = index === 0 ? '👑' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';            <td class="px-6 py-4 whitespace-nowrap">
-
-        const rowClass = index < 3 ? 'bg-yellow-50' : '';              <div class="flex items-center">
-
-                        <img src="${entry.avatar_url}" alt="${entry.username}" class="w-8 h-8 rounded-full mr-3" />
-
-        return `                <span class="text-sm font-medium text-gray-900 font-mono">${entry.display_name || entry.username}</span>
-
-          <tr class="${rowClass}">              </div>
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">            </td>
-
-              #${index + 1}            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-
-            </td>              <a href="https://github.com/${entry.username}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">
-
-            <td class="px-6 py-4 whitespace-nowrap">                @${entry.username}
-
-              <div class="flex items-center">              </a>
-
-                <img src="${entry.avatar_url}" alt="${entry.username}" class="w-8 h-8 rounded-full mr-3" />            </td>
-
-                <span class="text-sm font-medium text-gray-900 font-mono">${entry.display_name || entry.username}</span>            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
-
-              </div>              ${entry.total_prs}
-
-            </td>            </td>
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 font-mono">
-
-              <a href="https://github.com/${entry.username}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">              ${entry.merged_prs}
-
-                @${entry.username}            </td>
-
-              </a>            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-
-            </td>              <span class="text-2xl">${badge}</span>
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">            </td>
-
-              ${entry.total_prs}          </tr>
-
-            </td>        `;
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 font-mono">      }).join('');
-
-              ${entry.merged_prs}    }
-
-            </td>    
-
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">    table.classList.remove('hidden');
-
-              <span class="text-2xl">${badge}</span>  }
-
-            </td>  
-
-          </tr>  // Load leaderboard on page load
-
-        `;  loadLeaderboard();
-
-      }).join('');</script>
-
-    }      <div class="mb-16 text-center">
-
-            {!error && leaderboard.length >= 3 ? (
-
-    table.classList.remove('hidden');          <div class="flex justify-center items-end space-x-8 mb-8">
-
-  }            <!-- 2nd Place -->
-
-              <div class="bg-gray-100 rounded-lg p-6 w-40 h-48 flex flex-col items-center justify-between">
-
-  // Load leaderboard on page load              <div class="text-center">
-
-  loadLeaderboard();                <img src={leaderboard[1]?.avatar_url} alt={leaderboard[1]?.username} class="w-16 h-16 rounded-full mx-auto mb-2" />
-
-</script>                <h3 class="font-bold text-base font-mono truncate max-w-full">{leaderboard[1]?.display_name || leaderboard[1]?.username}</h3>
-
-                <p class="text-xs text-gray-600 font-mono truncate max-w-full">@{leaderboard[1]?.username}</p>
-                <p class="text-xl font-bold text-gray-700 font-mono mt-2">{leaderboard[1]?.merged_prs} PRs</p>
-                <p class="text-xs text-gray-500 font-mono">merged</p>
-              </div>
-              <div class="text-2xl font-bold text-gray-500 font-mono">🥈</div>
-            </div>
-            
-            <!-- 1st Place -->
-            <div class="bg-yellow-100 rounded-lg p-6 w-40 h-56 flex flex-col items-center justify-between border-4 border-yellow-400">
-              <div class="text-center">
-                <img src={leaderboard[0]?.avatar_url} alt={leaderboard[0]?.username} class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-yellow-500" />
-                <h3 class="font-bold text-base font-mono truncate max-w-full">{leaderboard[0]?.display_name || leaderboard[0]?.username}</h3>
-                <p class="text-xs text-gray-600 font-mono truncate max-w-full">@{leaderboard[0]?.username}</p>
-                <p class="text-2xl font-bold text-yellow-700 font-mono mt-2">{leaderboard[0]?.merged_prs} PRs</p>
-                <p class="text-xs text-yellow-600 font-mono">merged</p>
-              </div>
-              <div class="text-3xl font-bold text-yellow-600 font-mono">👑</div>
-            </div>
-            
-            <!-- 3rd Place -->
-            <div class="bg-orange-100 rounded-lg p-6 w-40 h-44 flex flex-col items-center justify-between">
-              <div class="text-center">
-                <img src={leaderboard[2]?.avatar_url} alt={leaderboard[2]?.username} class="w-14 h-14 rounded-full mx-auto mb-2" />
-                <h3 class="font-bold text-base font-mono truncate max-w-full">{leaderboard[2]?.display_name || leaderboard[2]?.username}</h3>
-                <p class="text-xs text-gray-600 font-mono truncate max-w-full">@{leaderboard[2]?.username}</p>
-                <p class="text-xl font-bold text-orange-700 font-mono mt-2">{leaderboard[2]?.merged_prs} PRs</p>
-                <p class="text-xs text-orange-600 font-mono">merged</p>
-              </div>
-              <div class="text-2xl font-bold text-orange-500 font-mono">🥉</div>
-            </div>
-          </div>
-        ) : !error && (
-          <div class="bg-gray-50 rounded-lg p-16">
-            <h3 class="text-2xl font-bold text-gray-900 mb-4 font-mono">No Rankings Yet</h3>
-            <p class="text-gray-600 mb-8 max-w-md mx-auto font-mono">
-              The leaderboard will populate once contributors start making contributions.
-            </p>
-            <div class="flex justify-center space-x-8">
-              <!-- Placeholder podium -->
-              <div class="bg-gray-200 rounded-lg p-6 w-24 h-32 flex flex-col items-center justify-end font-mono">
-                <div class="text-xs text-gray-500">2nd</div>
-              </div>
-              <div class="bg-yellow-200 rounded-lg p-6 w-24 h-40 flex flex-col items-center justify-end font-mono">
-                <div class="text-xs text-gray-600">1st</div>
-              </div>
-              <div class="bg-orange-200 rounded-lg p-6 w-24 h-28 flex flex-col items-center justify-end font-mono">
-                <div class="text-xs text-gray-500">3rd</div>
-              </div>
-            </div>
-          </div>
-        )}
+---
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/Navbar.astro";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="Leaderboard - Hacktoberfest 2025">
+  <Fragment slot="navbar">
+    <Navbar />
+  </Fragment>
+
+  <section class="py-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4 font-mono">Leaderboard</h1>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto font-mono">
+          See who's leading the pack in Hacktoberfest 2025 contributions
+        </p>
       </div>
 
+      <div id="loading" class="text-center py-16">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        <p class="mt-4 text-gray-600 font-mono">Loading leaderboard...</p>
+      </div>
 
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+        <h3 class="text-red-800 font-semibold font-mono mb-2">Backend Connection Error</h3>
+        <p id="error-message" class="text-red-700 font-mono text-sm"></p>
+      </div>
+
+      <div id="podium" class="mb-16 text-center hidden"></div>
+
+      <div id="leaderboard-table" class="bg-white rounded-lg shadow-lg overflow-hidden hidden">
         <div class="px-6 py-4 bg-green-600 text-white">
           <h2 class="text-xl font-semibold font-mono">Full Rankings</h2>
         </div>
-        
-        {!error && leaderboard.length > 0 ? (
-          <div class="overflow-x-auto">
-            <table class="min-w-full">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Rank</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Contributor</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">GitHub</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Total PRs</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Merged PRs</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Badge</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                {leaderboard.map((entry, index) => (
-                  <tr class={index < 3 ? 'bg-yellow-50' : ''}>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">
-                      #{index + 1}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div class="flex items-center">
-                        <img src={entry.avatar_url} alt={entry.username} class="w-8 h-8 rounded-full mr-3" />
-                        <span class="text-sm font-medium text-gray-900 font-mono">{entry.display_name || entry.username}</span>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                      <a href={`https://github.com/${entry.username}`} 
-                         target="_blank" 
-                         class="text-blue-600 hover:text-blue-800 underline">
-                        @{entry.username}
-                      </a>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">
-                      {entry.total_prs}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 font-mono">
-                      {entry.merged_prs}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {index === 0 && <span class="text-2xl">👑</span>}
-                      {index === 1 && <span class="text-xl">🥈</span>}
-                      {index === 2 && <span class="text-xl">🥉</span>}
-                      {entry.pr_count >= 4 && <span class="text-lg">🎯</span>}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : !error && (
-          <div class="text-center py-16">
-            <h3 class="text-xl font-bold text-gray-900 mb-4 font-mono">Leaderboard Coming Soon</h3>
-            <p class="text-gray-600 mb-8 max-w-md mx-auto font-mono">
-              Once contributors start participating, you'll see detailed rankings here.
-            </p>
-            <a href="/login" 
-               class="inline-block bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold font-mono">
-              Sign in to Participate
-            </a>
-          </div>
-        )}
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Rank</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Contributor</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">GitHub</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Total PRs</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Merged PRs</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider font-mono">Badge</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body" class="bg-white divide-y divide-gray-200"></tbody>
+          </table>
+        </div>
       </div>
 
-      <!-- Points System -->
       <div class="mt-12 bg-gray-50 rounded-lg p-8">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center font-mono">How Points Are Calculated</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h3 class="text-2xl font-bold text-gray-900 mb-8 text-center font-mono">How Points Are Calculated</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="text-center">
-            <h3 class="font-semibold text-lg font-mono">Pull Requests</h3>
-            <p class="text-gray-600 font-mono">10 points each</p>
+            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Pull Requests</h4>
+            <p class="text-3xl font-bold text-green-600 mb-2 font-mono">10 points each</p>
           </div>
           <div class="text-center">
-            <h3 class="font-semibold text-lg font-mono">Issues Resolved</h3>
-            <p class="text-gray-600 font-mono">5 points each</p>
+            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Issues Resolved</h4>
+            <p class="text-3xl font-bold text-green-600 mb-2 font-mono">5 points each</p>
           </div>
           <div class="text-center">
-            <h3 class="font-semibold text-lg  font-mono">Quality Bonus</h3>
+            <h4 class="text-xl font-semibold text-gray-900 mb-2 font-mono">Quality Bonus</h4>
             <p class="text-gray-600 font-mono">Extra points for exceptional contributions</p>
           </div>
         </div>
@@ -605,7 +71,131 @@ import Footer from "../components/Footer.astro";import Footer from "../component
     </div>
   </section>
 
-  <Fragment slot="footer">
-    <Footer />
-  </Fragment>
+  <Footer />
 </Layout>
+
+<script>
+  const API_BASE = (import.meta as any).env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
+  
+  interface LeaderboardEntry {
+    username: string;
+    display_name: string;
+    avatar_url: string;
+    total_prs: number;
+    merged_prs: number;
+  }
+  
+  async function loadLeaderboard() {
+    try {
+      const res = await fetch(API_BASE + '/leaderboard');
+      
+      if (!res.ok) {
+        throw new Error('API Error: ' + res.status + ' ' + res.statusText);
+      }
+      
+      const leaderboard: LeaderboardEntry[] = await res.json();
+      
+      const loading = document.getElementById('loading');
+      if (loading) loading.classList.add('hidden');
+      
+      if (leaderboard.length >= 3) {
+        renderPodium(leaderboard);
+      }
+      
+      renderLeaderboardTable(leaderboard);
+      
+    } catch (err) {
+      console.error('Leaderboard fetch error:', err);
+      const loading = document.getElementById('loading');
+      if (loading) loading.classList.add('hidden');
+      const errorDiv = document.getElementById('error');
+      const errorMsg = document.getElementById('error-message');
+      if (errorDiv && errorMsg) {
+        errorDiv.classList.remove('hidden');
+        errorMsg.textContent = err instanceof Error ? err.message : 'Failed to load leaderboard';
+      }
+    }
+  }
+  
+  function renderPodium(leaderboard: LeaderboardEntry[]) {
+    const podium = document.getElementById('podium');
+    if (!podium) return;
+    
+    const html = '<div class="flex justify-center items-end space-x-8 mb-8">' +
+      '<div class="bg-gray-100 rounded-lg p-6 w-40 h-48 flex flex-col items-center justify-between">' +
+        '<div class="text-center">' +
+          '<img src="' + leaderboard[1]?.avatar_url + '" alt="' + leaderboard[1]?.username + '" class="w-16 h-16 rounded-full mx-auto mb-2" />' +
+          '<h3 class="font-bold text-base font-mono truncate max-w-full">' + (leaderboard[1]?.display_name || leaderboard[1]?.username) + '</h3>' +
+          '<p class="text-xs text-gray-600 font-mono truncate max-w-full">@' + leaderboard[1]?.username + '</p>' +
+          '<p class="text-xl font-bold text-gray-700 font-mono mt-2">' + leaderboard[1]?.merged_prs + ' PRs</p>' +
+          '<p class="text-xs text-gray-500 font-mono">merged</p>' +
+        '</div>' +
+        '<div class="text-2xl font-bold text-gray-500 font-mono">🥈</div>' +
+      '</div>' +
+      '<div class="bg-yellow-100 rounded-lg p-6 w-40 h-56 flex flex-col items-center justify-between border-4 border-yellow-400">' +
+        '<div class="text-center">' +
+          '<img src="' + leaderboard[0]?.avatar_url + '" alt="' + leaderboard[0]?.username + '" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-yellow-500" />' +
+          '<h3 class="font-bold text-base font-mono truncate max-w-full">' + (leaderboard[0]?.display_name || leaderboard[0]?.username) + '</h3>' +
+          '<p class="text-xs text-gray-600 font-mono truncate max-w-full">@' + leaderboard[0]?.username + '</p>' +
+          '<p class="text-2xl font-bold text-yellow-700 font-mono mt-2">' + leaderboard[0]?.merged_prs + ' PRs</p>' +
+          '<p class="text-xs text-yellow-600 font-mono">merged</p>' +
+        '</div>' +
+        '<div class="text-3xl font-bold text-yellow-600 font-mono">👑</div>' +
+      '</div>' +
+      '<div class="bg-orange-100 rounded-lg p-6 w-40 h-44 flex flex-col items-center justify-between">' +
+        '<div class="text-center">' +
+          '<img src="' + leaderboard[2]?.avatar_url + '" alt="' + leaderboard[2]?.username + '" class="w-14 h-14 rounded-full mx-auto mb-2" />' +
+          '<h3 class="font-bold text-base font-mono truncate max-w-full">' + (leaderboard[2]?.display_name || leaderboard[2]?.username) + '</h3>' +
+          '<p class="text-xs text-gray-600 font-mono truncate max-w-full">@' + leaderboard[2]?.username + '</p>' +
+          '<p class="text-xl font-bold text-orange-700 font-mono mt-2">' + leaderboard[2]?.merged_prs + ' PRs</p>' +
+          '<p class="text-xs text-orange-600 font-mono">merged</p>' +
+        '</div>' +
+        '<div class="text-2xl font-bold text-orange-500 font-mono">🥉</div>' +
+      '</div>' +
+    '</div>';
+    
+    podium.innerHTML = html;
+    podium.classList.remove('hidden');
+  }
+  
+  function renderLeaderboardTable(leaderboard: LeaderboardEntry[]) {
+    const tableBody = document.getElementById('leaderboard-body');
+    const table = document.getElementById('leaderboard-table');
+    
+    if (!tableBody || !table) return;
+    
+    if (leaderboard.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" class="px-6 py-16 text-center">' +
+        '<h3 class="text-xl font-bold text-gray-900 mb-4 font-mono">Leaderboard Coming Soon</h3>' +
+        '<p class="text-gray-600 mb-8 max-w-md mx-auto font-mono">Once contributors start participating, you will see detailed rankings here.</p>' +
+        '<a href="/login" class="inline-block bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold font-mono">Sign in to Participate</a>' +
+        '</td></tr>';
+    } else {
+      let rows = '';
+      for (let i = 0; i < leaderboard.length; i++) {
+        const entry = leaderboard[i];
+        const badge = i === 0 ? '👑' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
+        const rowClass = i < 3 ? 'bg-yellow-50' : '';
+        
+        rows += '<tr class="' + rowClass + '">' +
+          '<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 font-mono">#' + (i + 1) + '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap"><div class="flex items-center">' +
+            '<img src="' + entry.avatar_url + '" alt="' + entry.username + '" class="w-8 h-8 rounded-full mr-3" />' +
+            '<span class="text-sm font-medium text-gray-900 font-mono">' + (entry.display_name || entry.username) + '</span>' +
+          '</div></td>' +
+          '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">' +
+            '<a href="https://github.com/' + entry.username + '" target="_blank" class="text-blue-600 hover:text-blue-800 underline">@' + entry.username + '</a>' +
+          '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">' + entry.total_prs + '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 font-mono">' + entry.merged_prs + '</td>' +
+          '<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><span class="text-2xl">' + badge + '</span></td>' +
+        '</tr>';
+      }
+      tableBody.innerHTML = rows;
+    }
+    
+    table.classList.remove('hidden');
+  }
+  
+  loadLeaderboard();
+</script>
