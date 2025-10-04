@@ -71,9 +71,8 @@ import ContributionChart from "../components/ContributionChart.astro";
 </section>
 
 <script>
-  // Set target date (example: 31 days from now)
-  const targetDate = new Date();
-  targetDate.setDate(targetDate.getDate() + 31);
+  // Set target date to October 31, 2025 at 11:59:59 PM
+  const targetDate = new Date('2025-10-31T23:59:59');
 
   function updateCountdown() {
     const now = new Date().getTime();
