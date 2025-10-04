@@ -144,9 +144,9 @@ app.get('/leaderboard', async (req, res) => {
       users.map(async (user) => {
         const { data: prs, error: prsError } = await supabase
           .from('pull_requests')
-          .select('state')
+          .select('merged_at')
           .eq('user_id', user.id)
-          .eq('state', 'closed'); // closed = merged
+          .not('merged_at', 'is', null); // Only count PRs that have been merged
 
         const mergedCount = prs ? prs.length : 0;
 
@@ -177,7 +177,7 @@ app.get('/admin/stats', requireAdminAuth, async (req, res) => {
 
     const { data: prs, error: prsError } = await supabase
       .from('pull_requests')
-      .select('state');
+      .select('state, merged_at');
 
     if (usersError || prsError) {
       return res.status(500).json({ error: usersError?.message || prsError?.message });
@@ -186,7 +186,7 @@ app.get('/admin/stats', requireAdminAuth, async (req, res) => {
     const totalUsers = users.length;
     const totalPRs = prs.length;
     const openPRs = prs.filter(pr => pr.state === 'open').length;
-    const mergedPRs = prs.filter(pr => pr.state === 'closed').length; // Assuming closed = merged for simplicity
+    const mergedPRs = prs.filter(pr => pr.merged_at !== null).length; // Only count actually merged PRs
 
     res.json({
       totalUsers,
