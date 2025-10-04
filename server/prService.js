@@ -119,3 +119,66 @@ export async function storeUserAndPRs(githubUser) {
     return { success: false, error: error.message };
   }
 }
+
+// Function to refresh a specific user's PR data (for webhooks)
+export async function refreshUserPRs(username) {
+  try {
+    console.log(`Refreshing PR data for ${username}...`);
+    
+    // Get user from database
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single();
+
+    if (userError || !user) {
+      console.log(`User ${username} not found in database`);
+      return { success: false, error: 'User not found' };
+    }
+
+    // Fetch fresh PRs from GitHub
+    const prs = await fetchUserPRsFromGitHub(username);
+    console.log(`Found ${prs.length} PRs for ${username}`);
+
+    // Update user's PR count
+    await supabase
+      .from('users')
+      .update({
+        pr_count: prs.length,
+        last_updated: new Date().toISOString()
+      })
+      .eq('id', user.id);
+
+    // Delete old PRs
+    await supabase
+      .from('pull_requests')
+      .delete()
+      .eq('user_id', user.id);
+
+    // Store fresh PRs
+    if (prs.length > 0) {
+      const prData = prs.map(pr => ({
+        user_id: user.id,
+        pr_number: pr.number,
+        title: pr.title,
+        url: pr.html_url,
+        repository: pr.repository_url.split('/').slice(-2).join('/'),
+        state: pr.state,
+        created_at: pr.created_at,
+        merged_at: pr.pull_request?.merged_at || null
+      }));
+
+      await supabase
+        .from('pull_requests')
+        .insert(prData);
+    }
+
+    console.log(`Successfully refreshed PR data for ${username}`);
+    return { success: true, prCount: prs.length };
+
+  } catch (error) {
+    console.error(`Error refreshing PRs for ${username}:`, error);
+    return { success: false, error: error.message };
+  }
+}

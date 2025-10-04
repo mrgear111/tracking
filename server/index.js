@@ -77,6 +77,57 @@ app.get('/auth/logout', (req, res, next) => {
   });
 });
 
+// GitHub Webhook endpoint for real-time PR updates
+app.post('/webhook/github', express.json(), async (req, res) => {
+  try {
+    const event = req.headers['x-github-event'];
+    const payload = req.body;
+
+    // Verify webhook secret if configured
+    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const signature = req.headers['x-hub-signature-256'];
+      const crypto = await import('crypto');
+      const hmac = crypto.createHmac('sha256', webhookSecret);
+      const digest = 'sha256=' + hmac.update(JSON.stringify(payload)).digest('hex');
+      
+      if (signature !== digest) {
+        console.log('Invalid webhook signature');
+        return res.status(401).send('Invalid signature');
+      }
+    }
+
+    // Handle pull_request events
+    if (event === 'pull_request') {
+      const action = payload.action; // opened, closed, reopened, etc.
+      const prAuthor = payload.pull_request?.user?.login;
+      
+      console.log(`Webhook: PR ${action} by ${prAuthor}`);
+      
+      // Update user's PR data if they exist in our system
+      if (prAuthor) {
+        const { data: user } = await supabase
+          .from('users')
+          .select('*')
+          .eq('username', prAuthor)
+          .single();
+        
+        if (user) {
+          console.log(`Refreshing PR data for ${prAuthor}...`);
+          // Import the refresh function
+          const { refreshUserPRs } = await import('./prService.js');
+          await refreshUserPRs(prAuthor);
+        }
+      }
+    }
+
+    res.status(200).send('Webhook received');
+  } catch (error) {
+    console.error('Webhook error:', error);
+    res.status(500).send('Webhook processing error');
+  }
+});
+
 // Admin authentication middleware
 function requireAdminAuth(req, res, next) {
   const adminPassword = req.headers['x-admin-password'] || req.query.adminPassword;
