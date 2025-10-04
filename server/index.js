@@ -61,14 +61,67 @@ passport.use(new GitHubStrategy({
 
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth/failure' }), (req, res) => {
-  // Redirect back to client app with a short-lived token or rely on session cookie
-  res.redirect(process.env.CLIENT_SUCCESS_REDIRECT || 'http://localhost:3000/login?auth=success');
+app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth/failure' }), async (req, res) => {
+  try {
+    // Check if user has completed profile
+    const username = req.user.username || req.user.login;
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('full_name, college, year')
+      .eq('username', username)
+      .single();
+
+    if (error || !user || !user.full_name || !user.college || !user.year) {
+      // User needs to complete profile
+      res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+    } else {
+      // User has completed profile, go to success page
+      res.redirect(process.env.CLIENT_SUCCESS_REDIRECT || 'http://localhost:3000/login?auth=success');
+    }
+  } catch (error) {
+    console.error('Error checking user profile:', error);
+    // Fallback to register page on error
+    res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+  }
 });
 
 app.get('/auth/me', (req, res) => {
   if (!req.user) return res.status(401).json({ authenticated: false });
   res.json({ authenticated: true, user: req.user });
+});
+
+// Update user profile (full_name, college, year, instructor) - requires user session
+app.post('/user/profile', express.json(), async (req, res) => {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
+
+    const { full_name, college, year, instructor } = req.body;
+    const username = req.user.username || req.user.login;
+
+    // Update the users table in Supabase
+    const { data: user, error } = await supabase
+      .from('users')
+      .update({
+        full_name: full_name || null,
+        college: college || null,
+        year: year || null,
+        instructor: instructor || null,
+        last_updated: new Date().toISOString()
+      })
+      .eq('username', username)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating profile:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Error in /user/profile:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 app.get('/auth/logout', (req, res, next) => {
