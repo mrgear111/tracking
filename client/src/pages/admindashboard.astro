@@ -8,15 +8,26 @@ import Navbar from '../components/Navbar.astro';
   
   <main class="min-h-screen bg-black text-green-100 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-green-400 font-mono mb-2">Admin Dashboard</h1>
-        <p class="text-green-300 font-mono">Monitor user activity and PR statistics</p>
+      <div class="mb-8 flex justify-between items-start">
+        <div>
+          <h1 class="text-3xl font-bold text-green-400 font-mono mb-2">Admin Dashboard</h1>
+          <p class="text-green-300 font-mono">Monitor user activity and PR statistics</p>
+        </div>
+        <button 
+          id="refresh-all-btn" 
+          class="bg-green-600 hover:bg-green-700 text-white font-mono px-6 py-3 rounded-lg transition duration-200 flex items-center gap-2"
+        >
+          <span id="refresh-icon">🔄</span>
+          <span id="refresh-text">Refresh All PRs</span>
+        </button>
       </div>
 
       <div id="loading" class="text-center py-8">
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto"></div>
         <p class="mt-4 text-green-300 font-mono">Loading dashboard data...</p>
       </div>
+
+      <div id="refresh-status" class="hidden mb-6 border rounded-lg p-4"></div>
 
       <div id="error" class="hidden bg-red-900 border border-red-600 rounded-lg p-4 mb-6">
         <p class="text-red-100 font-mono">Error loading data. Please try again.</p>
@@ -187,6 +198,69 @@ import Navbar from '../components/Navbar.astro';
       document.getElementById('pr-modal').classList.add('hidden');
     }
   });
+
+  // Manual refresh all PRs function
+  async function refreshAllPRs() {
+    const refreshBtn = document.getElementById('refresh-all-btn');
+    const refreshIcon = document.getElementById('refresh-icon');
+    const refreshText = document.getElementById('refresh-text');
+    const refreshStatus = document.getElementById('refresh-status');
+    
+    // Disable button and show loading state
+    refreshBtn.disabled = true;
+    refreshBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    refreshIcon.classList.add('animate-spin');
+    refreshText.textContent = 'Refreshing...';
+    
+    // Show status message
+    refreshStatus.className = 'mb-6 border border-blue-600 bg-blue-900 rounded-lg p-4';
+    refreshStatus.textContent = '🔄 Fetching latest PR data for all users... This may take a minute.';
+    refreshStatus.classList.remove('hidden');
+    
+    try {
+      const adminPassword = localStorage.getItem('adminPassword');
+      const response = await fetch(API_BASE + '/admin/refresh-all?adminPassword=' + encodeURIComponent(adminPassword), {
+        method: 'POST'
+      });
+      
+      if (response.status === 401) {
+        localStorage.removeItem('adminPassword');
+        alert('Session expired. Please login again.');
+        window.location.reload();
+        return;
+      }
+      
+      const data = await response.json();
+      
+      // Show success message
+      refreshStatus.className = 'mb-6 border border-green-600 bg-green-900 rounded-lg p-4';
+      refreshStatus.innerHTML = '<p class="text-green-100 font-mono">✅ Refresh completed successfully!</p><p class="text-green-300 font-mono text-sm mt-2">Refreshed: ' + data.usersRefreshed + ' users | Errors: ' + data.errors + '</p>';
+      
+      // Reload dashboard data
+      setTimeout(() => {
+        loadDashboardData();
+      }, 2000);
+      
+      // Hide status after 5 seconds
+      setTimeout(() => {
+        refreshStatus.classList.add('hidden');
+      }, 5000);
+      
+    } catch (error) {
+      console.error('Error refreshing PRs:', error);
+      refreshStatus.className = 'mb-6 border border-red-600 bg-red-900 rounded-lg p-4';
+      refreshStatus.innerHTML = '<p class="text-red-100 font-mono">❌ Error refreshing PRs. Please try again.</p>';
+    } finally {
+      // Re-enable button
+      refreshBtn.disabled = false;
+      refreshBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      refreshIcon.classList.remove('animate-spin');
+      refreshText.textContent = 'Refresh All PRs';
+    }
+  }
+
+  // Add event listener to refresh button
+  document.getElementById('refresh-all-btn').addEventListener('click', refreshAllPRs);
 
   loadDashboardData();
   window.viewUserPRs = viewUserPRs;

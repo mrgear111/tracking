@@ -178,6 +178,56 @@ app.get('/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
   }
 });
 
+// Manual refresh endpoint for admin
+app.post('/admin/refresh-all', requireAdminAuth, async (req, res) => {
+  try {
+    console.log('🔄 Manual refresh triggered by admin...');
+    
+    // Get all users from database
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('username');
+    
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+    
+    if (!users || users.length === 0) {
+      return res.json({ message: 'No users to refresh', usersRefreshed: 0 });
+    }
+    
+    // Refresh each user's PRs
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const user of users) {
+      try {
+        console.log(`  → Refreshing ${user.username}...`);
+        await refreshUserPRs(user.username);
+        successCount++;
+        
+        // Small delay between users to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error) {
+        console.error(`  ✗ Error refreshing ${user.username}:`, error.message);
+        errorCount++;
+      }
+    }
+    
+    console.log(`✅ Manual refresh completed! Success: ${successCount}, Errors: ${errorCount}`);
+    
+    res.json({ 
+      message: 'Refresh completed',
+      usersRefreshed: successCount,
+      errors: errorCount,
+      total: users.length
+    });
+  } catch (error) {
+    console.error('Error in manual refresh:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Public leaderboard endpoint - shows users sorted by merged PR count
 app.get('/leaderboard', async (req, res) => {
   try {
