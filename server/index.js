@@ -85,9 +85,41 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
   }
 });
 
-app.get('/auth/me', (req, res) => {
+app.get('/auth/me', async (req, res) => {
   if (!req.user) return res.status(401).json({ authenticated: false });
-  res.json({ authenticated: true, user: req.user });
+  
+  try {
+    // Fetch user's profile data from database
+    const username = req.user.username || req.user.login;
+    const { data: userData, error } = await supabase
+      .from('users')
+      .select('full_name, college, year, instructor, pr_count, avatar_url, display_name')
+      .eq('username', username)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching user profile:', error);
+      // Return session user data if DB fetch fails
+      return res.json({ authenticated: true, user: req.user });
+    }
+    
+    // Merge session data with database profile data
+    const completeUser = {
+      ...req.user,
+      full_name: userData.full_name,
+      college: userData.college,
+      year: userData.year,
+      instructor: userData.instructor,
+      pr_count: userData.pr_count,
+      avatar_url: userData.avatar_url,
+      display_name: userData.display_name
+    };
+    
+    res.json({ authenticated: true, user: completeUser });
+  } catch (error) {
+    console.error('Error in /auth/me:', error);
+    res.json({ authenticated: true, user: req.user });
+  }
 });
 
 // Update user profile (full_name, college, year, instructor) - requires user session
