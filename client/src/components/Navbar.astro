@@ -21,6 +21,11 @@
         <a href="/leaderboard" class="text-green-100 hover:text-green-300 px-3 py-2 rounded-md text-sm font-medium transition-colors font-mono">
           Leaderboard
         </a>
+        
+        <a id="register-link" href="/register" class="hidden text-yellow-400 hover:text-yellow-300 px-3 py-2 rounded-md text-sm font-medium transition-colors font-mono">
+          ⚠️ Complete Profile
+        </a>
+        
         <a href="/login" class="text-green-100 hover:text-green-300 px-3 py-2 rounded-md text-sm font-medium transition-colors font-mono">
           Login
         </a>
@@ -47,6 +52,9 @@
       <a href="/leaderboard" class="text-green-100 hover:text-green-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
         Leaderboard
       </a>
+      <a id="register-link-mobile" href="/register" class="hidden text-yellow-400 hover:text-yellow-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
+        ⚠️ Complete Profile
+      </a>
       <a href="/login" class="text-green-100 hover:text-green-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
         Login
       </a>
@@ -69,6 +77,8 @@
   async function renderAuthArea() {
     const authArea = document.getElementById('auth-area');
     const loginLinks = document.querySelectorAll('a[href="/login"]');
+    const registerLink = document.getElementById('register-link');
+    const registerLinkMobile = document.getElementById('register-link-mobile');
     const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
     
     try {
@@ -78,25 +88,45 @@
         if (data.authenticated && data.user) {
           // Hide login links
           loginLinks.forEach(link => link.style.display = 'none');
+          
+          // Check if user has completed profile
+          const hasProfile = data.user.full_name && data.user.college && data.user.year;
+          
+          if (!hasProfile) {
+            // Show "Complete Profile" link if profile incomplete
+            if (registerLink) registerLink.classList.remove('hidden');
+            if (registerLinkMobile) registerLinkMobile.classList.remove('hidden');
+          } else {
+            // Hide register link if profile is complete
+            if (registerLink) registerLink.classList.add('hidden');
+            if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
+          }
+          
           // Show user info and logout
           authArea.innerHTML = `
             <span class="text-green-100 text-sm mr-3">@${data.user.username || data.user.login || data.user.displayName}</span>
             <a href="${API_BASE}/auth/logout" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md text-sm">Sign out</a>
           `;
         } else {
-          // Show login links
+          // Show login links, hide register link
           loginLinks.forEach(link => link.style.display = '');
+          if (registerLink) registerLink.classList.add('hidden');
+          if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
           authArea.innerHTML = '';
         }
       } else {
-        // Show login links
+        // Show login links, hide register link
         loginLinks.forEach(link => link.style.display = '');
+        if (registerLink) registerLink.classList.add('hidden');
+        if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
         authArea.innerHTML = '';
       }
     } catch (err) {
       console.warn('Auth fetch failed', err);
-      // Show login links on error
+      // Show login links on error, hide register link
       loginLinks.forEach(link => link.style.display = '');
+      if (registerLink) registerLink.classList.add('hidden');
+      if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
       authArea.innerHTML = '';
     }
   }
