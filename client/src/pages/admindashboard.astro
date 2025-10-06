@@ -65,6 +65,7 @@ import Navbar from '../components/Navbar.astro';
                   <th class="px-6 py-3 text-left text-xs font-mono text-green-300">User</th>
                   <th class="px-6 py-3 text-left text-xs font-mono text-green-300">Username</th>
                   <th class="px-6 py-3 text-left text-xs font-mono text-green-300 hidden sm:table-cell">Full Name</th>
+                  <th class="px-6 py-3 text-left text-xs font-mono text-green-300 hidden sm:table-cell">Role</th>
                   <th class="px-6 py-3 text-left text-xs font-mono text-green-300 hidden md:table-cell">College</th>
                   <th class="px-6 py-3 text-left text-xs font-mono text-green-300 hidden lg:table-cell">Year</th>
                   <th class="px-6 py-3 text-left text-xs font-mono text-green-300 hidden lg:table-cell">Instructor</th>
@@ -155,10 +156,12 @@ import Navbar from '../components/Navbar.astro';
           '<td class="px-6 py-4 text-sm text-green-300 font-mono">@' + user.username + '</td>',
           // Full Name (hidden on mobile)
           '<td class="px-6 py-4 text-sm text-green-100 font-mono hidden sm:table-cell">' + (user.full_name || '<span class="text-gray-500 italic">Not provided</span>') + '</td>',
+          // Role (hidden on mobile)
+          '<td class="px-6 py-4 text-sm font-mono hidden sm:table-cell">' + (user.role ? '<span class="' + (user.role === 'Student' ? 'text-blue-400' : 'text-purple-400') + '">' + user.role + '</span>' : '<span class="text-gray-500 italic">Not provided</span>') + '</td>',
           // College (hidden on small screens)
           '<td class="px-6 py-4 text-sm text-green-100 font-mono hidden md:table-cell">' + (user.college || '<span class="text-gray-500 italic">Not provided</span>') + '</td>',
           // Year (hidden on medium screens and below)
-          '<td class="px-6 py-4 text-sm text-green-100 font-mono hidden lg:table-cell">' + (user.year || '<span class="text-gray-500 italic">Not provided</span>') + '</td>',
+          '<td class="px-6 py-4 text-sm text-green-100 font-mono hidden lg:table-cell">' + (user.year || '<span class="text-gray-500 italic">N/A</span>') + '</td>',
           // Instructor (hidden on medium screens and below)
           '<td class="px-6 py-4 text-sm text-green-100 font-mono hidden lg:table-cell">' + (user.instructor || '<span class="text-gray-500 italic">Not provided</span>') + '</td>',
           // PR Count

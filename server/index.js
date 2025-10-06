@@ -67,12 +67,12 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
     const username = req.user.username || req.user.login;
     const { data: user, error } = await supabase
       .from('users')
-      .select('full_name, college, year')
+      .select('full_name, role, college, year')
       .eq('username', username)
       .single();
 
-    if (error || !user || !user.full_name || !user.college || !user.year) {
-      // User needs to complete profile
+    if (error || !user || !user.full_name || !user.role || !user.college) {
+      // User needs to complete profile (year is optional for instructors)
       res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
     } else {
       // User has completed profile, go to success page
@@ -93,7 +93,7 @@ app.get('/auth/me', async (req, res) => {
     const username = req.user.username || req.user.login;
     const { data: userData, error } = await supabase
       .from('users')
-      .select('full_name, college, year, instructor, pr_count, avatar_url, display_name')
+      .select('full_name, role, college, year, instructor, pr_count, avatar_url, display_name')
       .eq('username', username)
       .single();
     
@@ -107,6 +107,7 @@ app.get('/auth/me', async (req, res) => {
     const completeUser = {
       ...req.user,
       full_name: userData.full_name,
+      role: userData.role,
       college: userData.college,
       year: userData.year,
       instructor: userData.instructor,
@@ -122,12 +123,12 @@ app.get('/auth/me', async (req, res) => {
   }
 });
 
-// Update user profile (full_name, college, year, instructor) - requires user session
+// Update user profile (full_name, role, college, year, instructor) - requires user session
 app.post('/user/profile', express.json(), async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
 
-    const { full_name, college, year, instructor } = req.body;
+    const { full_name, role, college, year, instructor } = req.body;
     const username = req.user.username || req.user.login;
 
     // Update the users table in Supabase
@@ -135,6 +136,7 @@ app.post('/user/profile', express.json(), async (req, res) => {
       .from('users')
       .update({
         full_name: full_name || null,
+        role: role || null,
         college: college || null,
         year: year || null,
         instructor: instructor || null,

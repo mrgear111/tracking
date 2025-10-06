@@ -89,8 +89,8 @@
           // Hide login links
           loginLinks.forEach(link => link.style.display = 'none');
           
-          // Check if user has completed profile
-          const hasProfile = data.user.full_name && data.user.college && data.user.year;
+          // Check if user has completed profile (role and college required, year only for students)
+          const hasProfile = data.user.full_name && data.user.role && data.user.college;
           
           if (!hasProfile) {
             // Show "Complete Profile" link if profile incomplete
