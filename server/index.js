@@ -12,7 +12,7 @@ dotenv.config();
 
 const app = express();
 
-// Trust proxy when deployed (Railway, Vercel, etc.)
+
 app.set('trust proxy', 1);
 
 app.use(cors({ 
@@ -393,7 +393,7 @@ app.get('/', (req, res) => res.send('Auth server running'));
 
 // Background job: Refresh all users' PR counts every hour
 async function refreshAllUsersPRs() {
-  console.log('🔄 Starting scheduled PR refresh for all users...');
+  console.log('Starting scheduled PR refresh for all users...');
   
   try {
     // Get all users from database
@@ -426,7 +426,7 @@ async function refreshAllUsersPRs() {
       }
     }
     
-    console.log('✅ Scheduled PR refresh completed!');
+    console.log('Scheduled PR refresh completed!');
   } catch (error) {
     console.error('Error in scheduled PR refresh:', error);
   }
@@ -436,10 +436,10 @@ async function refreshAllUsersPRs() {
 // Format: minute hour day month dayOfWeek
 cron.schedule('0 * * * *', refreshAllUsersPRs, {
   scheduled: true,
-  timezone: "America/New_York" // Adjust to your timezone if needed
+  timezone: "Asia/Kolkata"
 });
 
-console.log('⏰ Scheduled job: Refresh all users PRs every hour');
+console.log(' Scheduled job: Refresh all users PRs every hour');
 
 const port = process.env.PORT || 4000;
 app.listen(port, async () => {
