@@ -105,9 +105,12 @@
             if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
           }
           
+          // Extract username from various possible fields
+          const username = data.user.username || data.user.login || data.user.displayName || 'user';
+          
           // Show user info and logout
           authArea.innerHTML = `
-            <span class="text-green-100 text-sm mr-3">@${data.user.username || data.user.login || data.user.displayName}</span>
+            <span class="text-green-100 text-sm mr-3">@${username}</span>
             <a href="${API_BASE}/auth/logout" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md text-sm">Sign out</a>
           `;
         } else {
