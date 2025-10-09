@@ -1,8 +1,6 @@
 <h1 align="center">🚀 GIT GO PR — Pull Request Tracker</h1>
 
-<p align="center">
-  <img src="https://media.giphy.com/media/l0HlA2bWf3VYbV3Ck/giphy.gif" width="250" alt="GitHub PR animation">
-</p>
+
 
 <p align="center">
   <b>Track your open-source pull requests during Hacktoberfest 2025 🌸</b><br/>
@@ -38,10 +36,6 @@ Log in with your GitHub account to see your PRs, leaderboard rank, and contribut
 ---
 
 ## 🖼️ Demo Preview
-
-<p align="center">
-  <img src="https://media.giphy.com/media/3o7btT1TqP2JwPqKXS/giphy.gif" width="700" alt="PR Tracker demo preview">
-</p>
 
 > 🪄 *See your PRs come alive — real-time tracking, leaderboard updates, and beautiful analytics dashboard.*
 ---
