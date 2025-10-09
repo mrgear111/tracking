@@ -96,9 +96,14 @@
 							loginSection.classList.add('hidden');
 							userSection.classList.remove('hidden');
 							
-							userAvatar.src = data.user.photos?.[0]?.value || data.user.avatar_url || '';
-							userName.textContent = data.user.displayName || data.user.name || 'GitHub User';
-							userUsername.textContent = '@' + (data.user.username || data.user.login || '');
+							// Extract user data from various possible fields
+							const username = data.user.username || data.user.login || data.user.displayName || 'user';
+							const displayName = data.user.display_name || data.user.displayName || data.user.name || username;
+							const avatarUrl = data.user.avatar_url || data.user.photos?.[0]?.value || data.user.avatarUrl || '/default-avatar.png';
+							
+							userAvatar.src = avatarUrl;
+							userName.textContent = displayName;
+							userUsername.textContent = '@' + username;
 							
 							authStatus.innerHTML = '<span class="text-green-400">✓ Successfully signed in</span>';
 						} else {

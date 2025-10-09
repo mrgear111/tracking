@@ -71,8 +71,20 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
       .eq('username', username)
       .single();
 
-    if (error || !user || !user.full_name || !user.role || !user.college) {
-      // User needs to complete profile (year is optional for instructors)
+    if (error || !user) {
+      // User needs to complete profile
+      res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+      return;
+    }
+
+    // Check if profile is complete
+    // For students: need full_name, role, college, and year
+    // For instructors: need full_name, role, and college (year is optional)
+    const hasBasicProfile = user.full_name && user.role && user.college;
+    const hasCompleteProfile = hasBasicProfile && (user.role === 'Instructor' || user.year);
+
+    if (!hasCompleteProfile) {
+      // User needs to complete profile
       res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
     } else {
       // User has completed profile, go to success page

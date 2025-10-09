@@ -153,19 +153,32 @@ import Navbar from '../components/Navbar.astro';
       }
 
       const userData = await response.json();
+      const user = userData.user || userData;
+      
+      // Extract username from various possible fields
+      const username = user.username || user.login || user.displayName || 'user';
+      const displayName = user.display_name || user.displayName || user.name || username;
+      const avatarUrl = user.avatar_url || user.photos?.[0]?.value || user.avatarUrl || '/default-avatar.png';
       
       // Populate user info
-      document.getElementById('user-avatar').src = userData.avatar_url || '/default-avatar.png';
-      document.getElementById('user-name').textContent = userData.display_name || userData.username;
-      document.getElementById('user-username').textContent = '@' + userData.username;
+      document.getElementById('user-avatar').src = avatarUrl;
+      document.getElementById('user-name').textContent = displayName;
+      document.getElementById('user-username').textContent = '@' + username;
 
       // Pre-fill full name if available
-      if (userData.display_name) {
-        document.getElementById('full_name').value = userData.display_name;
+      if (user.full_name) {
+        document.getElementById('full_name').value = user.full_name;
+      } else if (displayName && displayName !== username) {
+        document.getElementById('full_name').value = displayName;
       }
 
       // Check if user already has profile data
-      if (userData.full_name && userData.college && userData.year) {
+      // For students: need full_name, role, college, and year
+      // For instructors: need full_name, role, and college (year is optional)
+      const hasBasicProfile = user.full_name && user.role && user.college;
+      const hasCompleteProfile = hasBasicProfile && (user.role === 'Instructor' || user.year);
+      
+      if (hasCompleteProfile) {
         // User already completed profile, redirect to leaderboard
         window.location.href = '/leaderboard';
         return;
