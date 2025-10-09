@@ -79,10 +79,12 @@
 <script>
   async function renderAuthArea() {
     const authArea = document.getElementById('auth-area');
-    const loginLinks = document.querySelectorAll('a[href="/login"]');
+    const loginLinks = document.querySelectorAll<HTMLElement>('a[href="/login"]');
     const registerLink = document.getElementById('register-link');
     const registerLinkMobile = document.getElementById('register-link-mobile');
     const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
+    
+    if (!authArea) return;
     
     try {
       const res = await fetch(API_BASE + '/auth/me', { credentials: 'include' });
@@ -109,23 +111,25 @@
           const username = data.user.username || data.user.login || data.user.displayName || 'user';
           
           // Show user info and logout
-          authArea.innerHTML = `
-            <span class="text-green-100 text-sm mr-3">@${username}</span>
-            <a href="${API_BASE}/auth/logout" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md text-sm">Sign out</a>
-          `;
+          if (authArea) {
+            authArea.innerHTML = `
+              <span class="text-green-100 text-sm mr-3">@${username}</span>
+              <a href="${API_BASE}/auth/logout" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1 rounded-md text-sm">Sign out</a>
+            `;
+          }
         } else {
           // Show login links, hide register link
           loginLinks.forEach(link => link.style.display = '');
           if (registerLink) registerLink.classList.add('hidden');
           if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
-          authArea.innerHTML = '';
+          if (authArea) authArea.innerHTML = '';
         }
       } else {
         // Show login links, hide register link
         loginLinks.forEach(link => link.style.display = '');
         if (registerLink) registerLink.classList.add('hidden');
         if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
-        authArea.innerHTML = '';
+        if (authArea) authArea.innerHTML = '';
       }
     } catch (err) {
       console.warn('Auth fetch failed', err);
@@ -133,7 +137,7 @@
       loginLinks.forEach(link => link.style.display = '');
       if (registerLink) registerLink.classList.add('hidden');
       if (registerLinkMobile) registerLinkMobile.classList.add('hidden');
-      authArea.innerHTML = '';
+      if (authArea) authArea.innerHTML = '';
     }
   }
 

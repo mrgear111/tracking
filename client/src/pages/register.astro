@@ -161,15 +161,20 @@ import Navbar from '../components/Navbar.astro';
       const avatarUrl = user.avatar_url || user.photos?.[0]?.value || user.avatarUrl || '/default-avatar.png';
       
       // Populate user info
-      document.getElementById('user-avatar').src = avatarUrl;
-      document.getElementById('user-name').textContent = displayName;
-      document.getElementById('user-username').textContent = '@' + username;
+      const userAvatarEl = document.getElementById('user-avatar') as HTMLImageElement | null;
+      const userNameEl = document.getElementById('user-name');
+      const userUsernameEl = document.getElementById('user-username');
+      
+      if (userAvatarEl) userAvatarEl.src = avatarUrl;
+      if (userNameEl) userNameEl.textContent = displayName;
+      if (userUsernameEl) userUsernameEl.textContent = '@' + username;
 
       // Pre-fill full name if available
-      if (user.full_name) {
-        document.getElementById('full_name').value = user.full_name;
-      } else if (displayName && displayName !== username) {
-        document.getElementById('full_name').value = displayName;
+      const fullNameInput = document.getElementById('full_name') as HTMLInputElement | null;
+      if (user.full_name && fullNameInput) {
+        fullNameInput.value = user.full_name;
+      } else if (displayName && displayName !== username && fullNameInput) {
+        fullNameInput.value = displayName;
       }
 
       // Check if user already has profile data
@@ -184,8 +189,10 @@ import Navbar from '../components/Navbar.astro';
         return;
       }
 
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('profile-form').classList.remove('hidden');
+      const loadingEl = document.getElementById('loading');
+      const profileFormEl = document.getElementById('profile-form');
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (profileFormEl) profileFormEl.classList.remove('hidden');
     } catch (error) {
       console.error('Error loading user data:', error);
       window.location.href = '/login';
@@ -193,9 +200,13 @@ import Navbar from '../components/Navbar.astro';
   }
 
   function toggleYearField() {
-    const role = document.getElementById('role').value;
-    const yearField = document.getElementById('year-field');
-    const yearSelect = document.getElementById('year');
+    const roleSelect = document.getElementById('role') as HTMLSelectElement | null;
+    const yearField = document.getElementById('year-field') as HTMLElement | null;
+    const yearSelect = document.getElementById('year') as HTMLSelectElement | null;
+    
+    if (!roleSelect || !yearField || !yearSelect) return;
+    
+    const role = roleSelect.value;
     
     if (role === 'Instructor') {
       // Hide year field for instructors
@@ -213,11 +224,13 @@ import Navbar from '../components/Navbar.astro';
     }
   }
 
-  async function submitProfile(event) {
+  async function submitProfile(event: Event) {
     event.preventDefault();
     
-    const submitBtn = document.getElementById('submit-btn');
-    const formData = new FormData(event.target);
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+    if (!submitBtn) return;
+    
+    const formData = new FormData(event.target as HTMLFormElement);
     const role = formData.get('role');
     
     // Disable button and show loading
@@ -248,8 +261,10 @@ import Navbar from '../components/Navbar.astro';
       }
 
       // Show success message
-      document.getElementById('profile-form').classList.add('hidden');
-      document.getElementById('success-message').classList.remove('hidden');
+      const profileFormEl = document.getElementById('profile-form');
+      const successMsgEl = document.getElementById('success-message');
+      if (profileFormEl) profileFormEl.classList.add('hidden');
+      if (successMsgEl) successMsgEl.classList.remove('hidden');
       
       // Redirect to leaderboard after 3 seconds
       setTimeout(() => {
@@ -258,7 +273,8 @@ import Navbar from '../components/Navbar.astro';
 
     } catch (error) {
       console.error('Error updating profile:', error);
-      document.getElementById('error-message').classList.remove('hidden');
+      const errorMsgEl = document.getElementById('error-message');
+      if (errorMsgEl) errorMsgEl.classList.remove('hidden');
       
       // Re-enable button
       submitBtn.disabled = false;
@@ -267,6 +283,9 @@ import Navbar from '../components/Navbar.astro';
     }
   }
 
-  document.getElementById('profile-data-form').addEventListener('submit', submitProfile);
+  const profileDataForm = document.getElementById('profile-data-form');
+  if (profileDataForm) {
+    profileDataForm.addEventListener('submit', submitProfile);
+  }
   loadUserData();
 </script>
