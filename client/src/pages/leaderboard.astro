@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import Navbar from "../components/Navbar.astro";
 import Footer from "../components/Footer.astro";
+import LeaderboardSkeleton from "../components/LeaderboardSkeleton.astro";
 ---
 
 <Layout title="Leaderboard - Hacktoberfest 2025">
@@ -18,9 +19,8 @@ import Footer from "../components/Footer.astro";
         </p>
       </div>
 
-      <div id="loading" class="text-center py-16">
-        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-        <p class="mt-4 text-gray-600 font-mono">Loading leaderboard...</p>
+      <div id="loading">
+        <LeaderboardSkeleton />
       </div>
 
       <div id="error" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
@@ -103,7 +103,7 @@ import Footer from "../components/Footer.astro";
     const podium = document.getElementById('podium');
     if (!podium) return;
     
-    const html = '<div class="flex justify-center items-end space-x-8 mb-8">' +
+    const html = '<div class="flex justify-center items-end space-x-8 mb-8 fade-in">' +
       '<div class="bg-gray-100 rounded-lg p-6 w-40 h-48 flex flex-col items-center justify-between">' +
         '<div class="text-center">' +
           '<img src="' + leaderboard[1]?.avatar_url + '" alt="' + leaderboard[1]?.username + '" class="w-16 h-16 rounded-full mx-auto mb-2" />' +
@@ -138,6 +138,7 @@ import Footer from "../components/Footer.astro";
     
     podium.innerHTML = html;
     podium.classList.remove('hidden');
+    podium.classList.add('fade-in');
   }
   
   function renderLeaderboardTable(leaderboard: LeaderboardEntry[]) {
@@ -177,6 +178,7 @@ import Footer from "../components/Footer.astro";
     }
     
     table.classList.remove('hidden');
+    table.classList.add('fade-in');
   }
   
   loadLeaderboard();
