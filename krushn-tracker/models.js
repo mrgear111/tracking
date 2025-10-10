@@ -130,6 +130,12 @@ const schemas = {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'GitHubRepository',
       },
+      link: {
+        type: String,
+        default: '',
+        unique: true,
+        required: true,
+      },
       is_open: {
         type: Boolean,
         default: true,

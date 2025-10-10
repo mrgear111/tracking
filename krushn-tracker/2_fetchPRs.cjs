@@ -235,11 +235,31 @@ const fetchPullRequests = async () => {
             is_open: prData.prStatus === 'open',
             is_merged: prData.prMerged,
             createdAt: prData.prDate,
+            link: prData.prLink,
           })
           await pr.save()
           console.log(
             `Created new PR: ${prData.title} for repository ${prData.repo}`
           )
+        } else {
+          // Update existing PR status if changed
+          let updated = false
+          if (pr.is_open !== (prData.prStatus === 'open')) {
+            pr.is_open = prData.prStatus === 'open'
+            updated = true
+          }
+          if (pr.is_merged !== prData.prMerged) {
+            pr.is_merged = prData.prMerged
+            updated = true
+          }
+          if(!pr.link) {
+            pr.link = prData.prLink
+            updated = true
+          }
+          if (updated) {
+            await pr.save()
+            console.log(`Updated PR: ${prData.title} status`)
+          }
         }
       }
     }
