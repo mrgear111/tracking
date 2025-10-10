@@ -58,17 +58,18 @@ npm start
 ## 🔐 Environment Variables
 
 ### Server (.env)
-- `GITHUB_CLIENT_ID` — OAuth app ID  
-- `GITHUB_CLIENT_SECRET` — OAuth secret  
-- `GITHUB_TOKEN` — Personal access token  
-- `SUPABASE_URL` — Database URL  
-- `SUPABASE_ANON_KEY` — Database key  
-- `SESSION_SECRET` — Session encryption  
-- `ADMIN_PASSWORD` — Admin access  
-- `CLIENT_ORIGIN` — Frontend URL
+- `GITHUB_CLIENT_ID`=OAuth app ID
+- `GITHUB_CLIENT_SECRET`=OAuth secret  
+- `GITHUB_TOKEN`=Personal access token
+- `SUPABASE_URL`=Database URL
+- `SUPABASE_ANON_KEY`=Database key
+- `SUPABASE_SERVICE_ROLE_KEY`=Database Service Role key
+- `SESSION_SECRET`=Session encryption
+- `ADMIN_PASSWORD`=Admin access
+- `CLIENT_ORIGIN`=Frontend URL
 
 ### Client (.env)  
-- `PUBLIC_API_BASE_URL` - Backend URL
+- `PUBLIC_API_BASE_URL`=Backend URL
 
 
 
