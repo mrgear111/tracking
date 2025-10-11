@@ -71,3 +71,4 @@ fetch_prs.js
 
 # Session data
 sessions/
+.vercel

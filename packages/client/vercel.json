@@ -1,6 +1,0 @@
-{
-  "buildCommand": "npm run build",
-  "env": {
-    "PUBLIC_API_BASE_URL": "https://tracking-production-0c48.up.railway.app"
-  }
-}

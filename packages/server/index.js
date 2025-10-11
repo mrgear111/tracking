@@ -4,9 +4,17 @@ import passport from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase, createTablesManually } from './supabase.js';
 import { storeUserAndPRs, refreshUserPRs } from './prService.js';
 import cron from 'node-cron';
+
+dotenv.config();
+
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -35,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({ 
   origin: process.env.NODE_ENV === 'production' 
     ? [process.env.CLIENT_ORIGIN, process.env.VERCEL_URL] 
-    : ['http://localhost:3000', 'http://localhost:4321'], // Astro default port
+    : ['http://localhost:4000', 'http://localhost:4321'], // Astro default port
   credentials: true 
 }));
 
@@ -79,6 +87,10 @@ passport.use(new GitHubStrategy({
   
   return done(null, profile);
 }));
+
+// Serve static files from Astro build output
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientDistPath));
 
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
@@ -514,6 +526,23 @@ async function refreshAllUsersPRs() {
   }
 }
 
+// Fallback for client-side routing - serve index.html for non-API routes
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/auth') || req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // Serve index.html for client-side routing
+  const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(404).send('Page not found - Make sure to build the client first: npm run build:client');
+    }
+  });
+});
+
 // For Vercel serverless deployment, export the app
 export default app;
 
@@ -526,15 +555,15 @@ if (process.env.NODE_ENV !== 'production') {
     // Initialize database tables
     await createTablesManually();
     
-    // Schedule cron job only in development
-    cron.schedule('0 * * * *', refreshAllUsersPRs, {
-      scheduled: true,
-      timezone: "Asia/Kolkata"
-    });
-    console.log('✓ Scheduled job: Refresh all users PRs every hour');
+    // // Schedule cron job only in development
+    // cron.schedule('0 * * * *', refreshAllUsersPRs, {
+    //   scheduled: true,
+    //   timezone: "Asia/Kolkata"
+    // });
+    // console.log('✓ Scheduled job: Refresh all users PRs every hour');
     
-    // Run initial refresh on startup (optional)
-    console.log('Running initial PR refresh on startup...');
-    setTimeout(() => refreshAllUsersPRs(), 5000); // Wait 5 seconds after startup
+    // // Run initial refresh on startup (optional)
+    // console.log('Running initial PR refresh on startup...');
+    // setTimeout(() => refreshAllUsersPRs(), 5000); // Wait 5 seconds after startup
   });
 }
