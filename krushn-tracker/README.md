@@ -4,7 +4,7 @@
 
 1. Clone the repository.
 2. Navigate to `krushn-tracker` directory.
-3. Create an `.env` file in the root directory with the following variables:
+3. Create an `.env` file in the `krushn-tracker` directory with the following variables:
 
     ```env
     GITHUB_TOKEN=your_github_personal_access_token
