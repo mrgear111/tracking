@@ -111,8 +111,41 @@ import Navbar from '../components/Navbar.astro';
     return true;
   }
 
+  const prModalElem = document.getElementById('pr-modal') as HTMLElement;
+
+
+  interface User {
+    id: number;
+    username: string;
+    display_name: string | null;
+    avatar_url: string | null;
+    full_name: string | null;
+    role: string | null;
+    college: string | null;
+    year: string | null;
+    instructor: string | null;
+    pr_count: number;
+  }
+
+  interface PR {
+    id: number;
+    pr_number: number;
+    title: string;
+    url: string;
+    repository: string;
+    state: 'open' | 'closed' | 'merged';
+    created_at: string;
+  }
+
+
+
   async function loadDashboardData() {
     if (!checkAdminAuth()) return;
+
+    const loadingElem = document.getElementById('loading') as HTMLElement;
+    const dashboardContent = document.getElementById('dashboard-content') as HTMLElement;
+    const errorElem = document.getElementById('error') as HTMLElement;
+
     
     try {
       // Load stats with admin password
@@ -126,10 +159,16 @@ import Navbar from '../components/Navbar.astro';
       }
       
       const stats = await statsResponse.json();
-      document.getElementById('total-users').textContent = stats.totalUsers;
-      document.getElementById('total-prs').textContent = stats.totalPRs;
-      document.getElementById('open-prs').textContent = stats.openPRs;
-      document.getElementById('merged-prs').textContent = stats.mergedPRs;
+
+      const totalUsersElem = document.getElementById('total-users') as HTMLElement;
+      const totalPRsElem = document.getElementById('total-prs') as HTMLElement;
+      const openPRsElem = document.getElementById('open-prs') as HTMLElement;
+      const mergedPRsElem = document.getElementById('merged-prs') as HTMLElement;
+
+      totalUsersElem.textContent = stats.totalUsers;
+      totalPRsElem.textContent = stats.totalPRs;
+      openPRsElem.textContent = stats.openPRs;
+      mergedPRsElem.textContent = stats.mergedPRs;
 
       const usersResponse = await fetch(API_BASE + '/api/admin/users?adminPassword=' + encodeURIComponent(adminPassword));
       
@@ -139,11 +178,12 @@ import Navbar from '../components/Navbar.astro';
         window.location.reload();
         return;
       }
-      
-      const usersData = await usersResponse.json();
-      const tableBody = document.getElementById('users-table-body');
+
+      const usersData: { users: User[] } = await usersResponse.json();
+      const tableBody = document.getElementById('users-table-body') as HTMLElement;
       tableBody.innerHTML = '';
 
+      
       usersData.users.forEach(user => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-800 border-t border-green-700';
@@ -174,18 +214,20 @@ import Navbar from '../components/Navbar.astro';
         tableBody.appendChild(row);
       });
 
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('dashboard-content').classList.remove('hidden');
+
+
+      loadingElem.classList.add('hidden');
+      dashboardContent.classList.remove('hidden');
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('error').classList.remove('hidden');
+      loadingElem.classList.add('hidden');
+      errorElem.classList.remove('hidden');
     }
   }
 
-  async function viewUserPRs(userId, username) {
+  async function viewUserPRs(userId: number, username: string) {
     try {
-      const adminPassword = localStorage.getItem('adminPassword');
+      const adminPassword = localStorage.getItem('adminPassword') || '';
       const response = await fetch(API_BASE + '/api/admin/users/' + userId + '/prs?adminPassword=' + encodeURIComponent(adminPassword));
       
       if (response.status === 401) {
@@ -196,15 +238,15 @@ import Navbar from '../components/Navbar.astro';
       }
       
       const data = await response.json();
-      const modalTitle = document.getElementById('modal-title');
-      const modalContent = document.getElementById('modal-content');
+      const modalTitle = document.getElementById('modal-title') as HTMLElement;
+      const modalContent = document.getElementById('modal-content') as HTMLElement;
       modalTitle.textContent = 'PRs by @' + username;
       
       if (data.prs.length === 0) {
         modalContent.innerHTML = '<p class="text-green-300 font-mono">No PRs found.</p>';
       } else {
         let html = '<div class="space-y-4">';
-        data.prs.forEach(pr => {
+        data.prs.forEach((pr: PR) => {
           const createdDate = new Date(pr.created_at).toLocaleDateString();
           const statusIcon = pr.state === 'open' ? '🟢' : '🟣';
           html += '<div class="border border-green-700 rounded-lg p-4"><div class="flex justify-between items-start mb-2"><h4 class="text-green-100 font-mono">' + statusIcon + ' ' + pr.title + '</h4><span class="text-green-400 text-sm font-mono">#' + pr.pr_number + '</span></div><p class="text-green-300 text-sm font-mono mb-2">' + pr.repository + '</p><p class="text-green-400 text-sm font-mono mb-2">Created: ' + createdDate + '</p><a href="' + pr.url + '" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm font-mono">View on GitHub →</a></div>';
@@ -212,19 +254,19 @@ import Navbar from '../components/Navbar.astro';
         html += '</div>';
         modalContent.innerHTML = html;
       }
-      document.getElementById('pr-modal').classList.remove('hidden');
+      (prModalElem).classList.remove('hidden');
     } catch (error) {
       console.error('Error loading user PRs:', error);
     }
   }
 
-  document.getElementById('close-modal').addEventListener('click', () => {
-    document.getElementById('pr-modal').classList.add('hidden');
+  (document.getElementById('close-modal') as HTMLElement).addEventListener('click', () => {
+    prModalElem.classList.add('hidden');
   });
 
-  document.getElementById('pr-modal').addEventListener('click', (e) => {
+  prModalElem.addEventListener('click', (e) => {
     if ((e.target as HTMLElement).id === 'pr-modal') {
-      document.getElementById('pr-modal').classList.add('hidden');
+      prModalElem.classList.add('hidden');
     }
   });
 
@@ -247,7 +289,7 @@ import Navbar from '../components/Navbar.astro';
     refreshStatus.classList.remove('hidden');
     
     try {
-      const adminPassword = localStorage.getItem('adminPassword');
+      const adminPassword = localStorage.getItem('adminPassword') || '';
       const response = await fetch(API_BASE + '/api/admin/refresh-all?adminPassword=' + encodeURIComponent(adminPassword), {
         method: 'POST'
       });
@@ -289,7 +331,7 @@ import Navbar from '../components/Navbar.astro';
   }
 
   // Add event listener to refresh button
-  document.getElementById('refresh-all-btn').addEventListener('click', refreshAllPRs);
+  (document.getElementById('refresh-all-btn') as HTMLButtonElement).addEventListener('click', refreshAllPRs);
 
   loadDashboardData();
 
@@ -298,6 +340,6 @@ import Navbar from '../components/Navbar.astro';
       viewUserPRs: (userId: number, username: string) => void
     }
   }
-  
+
   window.viewUserPRs = viewUserPRs;
 </script>
