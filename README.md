@@ -18,7 +18,7 @@
 
 ## 🧠 Overview
 
-GITGOTPR helps developers **track, visualize, and celebrate** their pull requests throughout **October 2025**.  
+GITGOPR helps developers **track, visualize, and celebrate** their pull requests throughout **October 2025**.  
 Log in with your GitHub account to see your PRs, leaderboard rank, and contribution stats in one dashboard.
 
 
