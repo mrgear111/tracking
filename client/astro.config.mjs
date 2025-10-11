@@ -8,5 +8,8 @@ export default defineConfig({
     tailwind({
       applyBaseStyles: true,
     })
-  ]
+  ],
+  server: {
+    port: 3000,
+  },
 });

@@ -1,0 +1,76 @@
+---
+// Skeleton screen for admin dashboard loading state
+---
+
+<div class="animate-pulse">
+  <!-- Stats Cards Skeleton -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    {Array.from({length: 4}).map(() => (
+      <div class="bg-gray-900 border border-green-600 rounded-lg p-6 skeleton-shimmer">
+        <div class="h-4 bg-gray-700 rounded w-20 mb-2"></div>
+        <div class="h-8 bg-gray-700 rounded w-16"></div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Users Table Skeleton -->
+  <div class="bg-gray-900 border border-green-600 rounded-lg overflow-hidden">
+    <div class="px-6 py-4 border-b border-green-600">
+      <div class="h-6 bg-gray-700 rounded w-40 mb-2"></div>
+      <div class="h-4 bg-gray-700 rounded w-64"></div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead class="bg-gray-800">
+          <tr>
+            <th class="px-6 py-3 text-left"><div class="h-3 bg-gray-700 rounded w-12"></div></th>
+            <th class="px-6 py-3 text-left"><div class="h-3 bg-gray-700 rounded w-20"></div></th>
+            <th class="px-6 py-3 text-left hidden sm:table-cell"><div class="h-3 bg-gray-700 rounded w-24"></div></th>
+            <th class="px-6 py-3 text-left hidden sm:table-cell"><div class="h-3 bg-gray-700 rounded w-16"></div></th>
+            <th class="px-6 py-3 text-left hidden md:table-cell"><div class="h-3 bg-gray-700 rounded w-32"></div></th>
+            <th class="px-6 py-3 text-left hidden lg:table-cell"><div class="h-3 bg-gray-700 rounded w-16"></div></th>
+            <th class="px-6 py-3 text-left hidden lg:table-cell"><div class="h-3 bg-gray-700 rounded w-24"></div></th>
+            <th class="px-6 py-3 text-left"><div class="h-3 bg-gray-700 rounded w-20"></div></th>
+            <th class="px-6 py-3 text-left"><div class="h-3 bg-gray-700 rounded w-16"></div></th>
+          </tr>
+        </thead>
+        <tbody class="bg-gray-900">
+          {Array.from({length: 10}).map(() => (
+            <tr class="border-t border-green-700 skeleton-shimmer">
+              <td class="px-6 py-4">
+                <div class="flex items-center">
+                  <div class="h-10 w-10 bg-gray-700 rounded-full mr-4"></div>
+                  <div class="h-4 bg-gray-700 rounded w-24"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 bg-gray-700 rounded w-20"></div>
+              </td>
+              <td class="px-6 py-4 hidden sm:table-cell">
+                <div class="h-4 bg-gray-700 rounded w-32"></div>
+              </td>
+              <td class="px-6 py-4 hidden sm:table-cell">
+                <div class="h-4 bg-gray-700 rounded w-16"></div>
+              </td>
+              <td class="px-6 py-4 hidden md:table-cell">
+                <div class="h-4 bg-gray-700 rounded w-40"></div>
+              </td>
+              <td class="px-6 py-4 hidden lg:table-cell">
+                <div class="h-4 bg-gray-700 rounded w-16"></div>
+              </td>
+              <td class="px-6 py-4 hidden lg:table-cell">
+                <div class="h-4 bg-gray-700 rounded w-24"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 bg-gray-700 rounded w-8"></div>
+              </td>
+              <td class="px-6 py-4">
+                <div class="h-4 bg-gray-700 rounded w-16"></div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

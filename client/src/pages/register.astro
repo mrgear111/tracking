@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Navbar from '../components/Navbar.astro';
+import RegisterFormSkeleton from '../components/RegisterFormSkeleton.astro';
 ---
 
 <Layout title="Complete Your Profile - GITGOPR">
@@ -14,9 +15,8 @@ import Navbar from '../components/Navbar.astro';
           <p class="text-green-300 font-mono">Help us learn more about you</p>
         </div>
 
-        <div id="loading" class="text-center py-8">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto"></div>
-          <p class="mt-4 text-green-300 font-mono">Loading...</p>
+        <div id="loading">
+          <RegisterFormSkeleton />
         </div>
 
         <div id="profile-form" class="hidden">
@@ -172,7 +172,9 @@ import Navbar from '../components/Navbar.astro';
       }
 
       document.getElementById('loading').classList.add('hidden');
-      document.getElementById('profile-form').classList.remove('hidden');
+      const profileForm = document.getElementById('profile-form');
+      profileForm.classList.remove('hidden');
+      profileForm.classList.add('fade-in');
     } catch (error) {
       console.error('Error loading user data:', error);
       window.location.href = '/login';
@@ -207,10 +209,10 @@ import Navbar from '../components/Navbar.astro';
     const formData = new FormData(event.target);
     const role = formData.get('role');
     
-    // Disable button and show loading
+    // Disable button and show loading with progress indicator
     submitBtn.disabled = true;
-    submitBtn.textContent = 'Saving...';
-    submitBtn.classList.add('opacity-50');
+    submitBtn.innerHTML = '<span class="inline-block animate-spin mr-2">⏳</span> Saving Profile...';
+    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
     try {
       const profileData = {
@@ -234,9 +236,11 @@ import Navbar from '../components/Navbar.astro';
         throw new Error('Failed to update profile');
       }
 
-      // Show success message
+      // Show success message with animation
       document.getElementById('profile-form').classList.add('hidden');
-      document.getElementById('success-message').classList.remove('hidden');
+      const successMessage = document.getElementById('success-message');
+      successMessage.classList.remove('hidden');
+      successMessage.classList.add('fade-in');
       
       // Redirect to leaderboard after 3 seconds
       setTimeout(() => {

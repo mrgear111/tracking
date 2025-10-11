@@ -1,0 +1,156 @@
+---
+// Progressive loading indicator component
+interface Props {
+  id?: string;
+  theme?: 'light' | 'dark';
+}
+
+const { id = 'progress-loader', theme = 'light' } = Astro.props;
+
+// Theme-specific classes
+const bgClass = theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200';
+const textClass = theme === 'dark' ? 'text-green-300' : 'text-gray-600';
+const barClass = theme === 'dark' ? 'bg-green-500' : 'bg-green-600';
+---
+
+<div id={id} class="text-center py-8" data-theme={theme}>
+  <div class="max-w-md mx-auto">
+    <!-- Progress Bar -->
+    <div class="mb-6">
+      <div class={`w-full ${bgClass} rounded-full h-2 overflow-hidden`}>
+        <div id={`${id}-bar`} class={`${barClass} h-2 rounded-full transition-all duration-500`} style="width: 0%"></div>
+      </div>
+      <p id={`${id}-percentage`} class={`text-sm ${textClass} font-mono mt-2 text-center`}>0%</p>
+    </div>
+    
+    <!-- Loading Steps -->
+    <div id={`${id}-steps`} class="space-y-3">
+      <!-- Steps will be dynamically added here -->
+    </div>
+    
+    <!-- Current Step Message -->
+    <p id={`${id}-message`} class={`mt-4 ${textClass} font-mono text-sm`}></p>
+  </div>
+</div>
+
+<script>
+  // Progressive loader functionality
+  interface LoadingStep {
+    step: number;
+    text: string;
+    duration: number;
+  }
+
+  class ProgressLoader {
+    private loaderId: string;
+    private steps: LoadingStep[];
+    private currentStep: number = 0;
+    private progressBar: HTMLElement | null;
+    private percentageText: HTMLElement | null;
+    private messageText: HTMLElement | null;
+    private stepsContainer: HTMLElement | null;
+
+    constructor(loaderId: string, steps: LoadingStep[]) {
+      this.loaderId = loaderId;
+      this.steps = steps;
+      this.progressBar = document.getElementById(`${loaderId}-bar`);
+      this.percentageText = document.getElementById(`${loaderId}-percentage`);
+      this.messageText = document.getElementById(`${loaderId}-message`);
+      this.stepsContainer = document.getElementById(`${loaderId}-steps`);
+    }
+
+    start() {
+      this.renderSteps();
+      this.processSteps();
+    }
+
+    private renderSteps() {
+      if (!this.stepsContainer) return;
+      
+      // Detect theme from parent element
+      const loaderElement = document.getElementById(this.loaderId);
+      const isDark = loaderElement?.getAttribute('data-theme') === 'dark';
+      
+      const borderClass = isDark ? 'border-green-700' : 'border-gray-300';
+      const textClass = isDark ? 'text-green-400' : 'text-gray-400';
+      
+      this.stepsContainer.innerHTML = this.steps.map((step, index) => `
+        <div id="step-${this.loaderId}-${index}" class="flex items-center space-x-3 p-2 rounded transition-all">
+          <div class="flex-shrink-0 w-6 h-6 rounded-full border-2 ${borderClass} flex items-center justify-center">
+            <span class="text-xs ${textClass}">${step.step}</span>
+          </div>
+          <span class="text-sm ${textClass} font-mono">${step.text}</span>
+        </div>
+      `).join('');
+    }
+
+    private async processSteps() {
+      for (let i = 0; i < this.steps.length; i++) {
+        this.currentStep = i;
+        this.updateProgress(i);
+        await this.delay(this.steps[i].duration);
+      }
+      this.complete();
+    }
+
+    private updateProgress(stepIndex: number) {
+      const step = this.steps[stepIndex];
+      const progress = ((stepIndex + 1) / this.steps.length) * 100;
+      
+      // Detect theme
+      const loaderElement = document.getElementById(this.loaderId);
+      const isDark = loaderElement?.getAttribute('data-theme') === 'dark';
+      
+      // Update progress bar
+      if (this.progressBar) {
+        this.progressBar.style.width = `${progress}%`;
+      }
+      
+      // Update percentage
+      if (this.percentageText) {
+        this.percentageText.textContent = `${Math.round(progress)}%`;
+      }
+      
+      // Update message
+      if (this.messageText) {
+        this.messageText.textContent = step.text;
+      }
+      
+      // Update step styling with theme-aware colors
+      const stepElement = document.getElementById(`step-${this.loaderId}-${stepIndex}`);
+      if (stepElement) {
+        stepElement.classList.add(isDark ? 'bg-gray-800' : 'bg-green-50');
+        const circle = stepElement.querySelector('div');
+        const text = stepElement.querySelector('span:last-child');
+        if (circle) {
+          circle.classList.remove(isDark ? 'border-green-700' : 'border-gray-300');
+          circle.classList.add(isDark ? 'border-green-500' : 'border-green-600', isDark ? 'bg-green-500' : 'bg-green-600');
+          circle.innerHTML = '<span class="text-xs text-white">✓</span>';
+        }
+        if (text) {
+          text.classList.remove(isDark ? 'text-green-400' : 'text-gray-400');
+          text.classList.add(isDark ? 'text-green-300' : 'text-green-700');
+        }
+      }
+    }
+
+    private complete() {
+      if (this.progressBar) {
+        this.progressBar.style.width = '100%';
+      }
+      if (this.percentageText) {
+        this.percentageText.textContent = '100%';
+      }
+      if (this.messageText) {
+        this.messageText.textContent = 'Complete!';
+      }
+    }
+
+    private delay(ms: number): Promise<void> {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+  }
+
+  // Make ProgressLoader available globally
+  (window as any).ProgressLoader = ProgressLoader;
+</script>
