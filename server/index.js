@@ -127,8 +127,7 @@ app.get('/auth/me', async (req, res) => {
 app.post('/user/profile', express.json(), async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
-
-    const { full_name, role, college, year, instructor } = req.body;
+    const { full_name, role, college, year, instructor, github_id, pr_count, avatar_url, display_name} = req.body;
     const username = req.user.username || req.user.login;
 
     // Update the users table in Supabase
@@ -140,7 +139,11 @@ app.post('/user/profile', express.json(), async (req, res) => {
         college: college || null,
         year: year || null,
         instructor: instructor || null,
-        last_updated: new Date().toISOString()
+        last_updated: new Date().toISOString(),
+        display_name: display_name || null,
+        avatar_url: avatar_url || null,
+        github_id: github_id,
+        pr_count: pr_count || 0
       })
       .eq('username', username)
       .select()
