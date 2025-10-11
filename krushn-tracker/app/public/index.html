@@ -94,6 +94,8 @@
             <td>
               {{ pr.repository.name }}
 
+              Is Self Repo? {{pr.repository.owner.username === pr.author.username ? 'Yes' : 'No'}}
+
               <button @click="redFlagRepository(pr.repository._id)">
                 Mark Red Flag
               </button>
