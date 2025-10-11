@@ -12,11 +12,30 @@ dotenv.config();
 
 const app = express();
 
+// Middleware to ensure database is initialized for serverless
+app.use(async (req, res, next) => {
+  try {
+    // Initialize database tables if needed (for serverless cold starts)
+    if (process.env.NODE_ENV === 'production') {
+      await createTablesManually();
+    }
+    next();
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    next(); // Continue anyway
+  }
+});
 
 app.set('trust proxy', 1);
 
+// Parse JSON bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors({ 
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000', 
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.CLIENT_ORIGIN, process.env.VERCEL_URL] 
+    : ['http://localhost:3000', 'http://localhost:4321'], // Astro default port
   credentials: true 
 }));
 
@@ -41,7 +60,9 @@ passport.deserializeUser((obj, done) => done(null, obj));
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: process.env.GITHUB_CALLBACK_URL || 'http://localhost:4000/auth/github/callback',
+  callbackURL: process.env.GITHUB_CALLBACK_URL || (process.env.NODE_ENV === 'production' 
+    ? '/api/auth/github/callback' 
+    : 'http://localhost:4000/auth/github/callback'),
 }, async (accessToken, refreshToken, profile, done) => {
   // Store user and fetch PRs in background
   profile.accessToken = accessToken;
@@ -83,6 +104,15 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
     // Fallback to register page on error
     res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
   }
+});
+
+// Health check route for Vercel
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 app.get('/auth/me', async (req, res) => {
@@ -484,23 +514,27 @@ async function refreshAllUsersPRs() {
   }
 }
 
-// Schedule cron job to run every hour at minute 0
-// Format: minute hour day month dayOfWeek
-cron.schedule('0 * * * *', refreshAllUsersPRs, {
-  scheduled: true,
-  timezone: "Asia/Kolkata"
-});
+// For Vercel serverless deployment, export the app
+export default app;
 
-console.log(' Scheduled job: Refresh all users PRs every hour');
-
-const port = process.env.PORT || 4000;
-app.listen(port, async () => {
-  console.log(`Auth server listening on http://localhost:${port}`);
-  
-  // Initialize database tables
-  await createTablesManually();
-  
-  // Run initial refresh on startup (optional)
-  console.log('Running initial PR refresh on startup...');
-  setTimeout(() => refreshAllUsersPRs(), 5000); // Wait 5 seconds after startup
-});
+// For local development, still listen on port
+if (process.env.NODE_ENV !== 'production') {
+  const port = process.env.PORT || 4000;
+  app.listen(port, async () => {
+    console.log(`Auth server listening on http://localhost:${port}`);
+    
+    // Initialize database tables
+    await createTablesManually();
+    
+    // Schedule cron job only in development
+    cron.schedule('0 * * * *', refreshAllUsersPRs, {
+      scheduled: true,
+      timezone: "Asia/Kolkata"
+    });
+    console.log('✓ Scheduled job: Refresh all users PRs every hour');
+    
+    // Run initial refresh on startup (optional)
+    console.log('Running initial PR refresh on startup...');
+    setTimeout(() => refreshAllUsersPRs(), 5000); // Wait 5 seconds after startup
+  });
+}

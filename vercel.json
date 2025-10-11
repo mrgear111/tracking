@@ -1,0 +1,35 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "packages/client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "packages/server/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "packages/server/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "packages/client/dist/$1"
+    }
+  ],
+  "outputDirectory": "packages/client/dist",
+  "installCommand": "npm install && npm run build",
+  "buildCommand": "npm run build",
+  "framework": "astro",
+  "functions": {
+    "packages/server/index.js": {
+      "maxDuration": 30
+    }
+  }
+}

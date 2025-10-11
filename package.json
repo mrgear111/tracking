@@ -8,13 +8,13 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm:dev:*\"",
-    "dev:client": "npm run dev --workspaces @gitgopr/client",
-    "dev:server": "npm run dev --workspaces @gitgopr/server",
-    "build": "npm run build --workspaces @gitgopr/client",
-    "build:client": "npm run build --workspaces @gitgopr/client",
-    "start": "npm run start --workspaces @gitgopr/server",
-    "clean": "npm run clean --workspaces @gitgopr/client",
-    "install:all": "npm install && npm install --workspaces @gitgopr/client && npm install --workspaces @gitgopr/server"
+    "dev:client": "npm run dev -w @gitgopr/client",
+    "dev:server": "npm run dev -w @gitgopr/server",
+    "build": "npm run build -w @gitgopr/client",
+    "build:client": "npm run build -w @gitgopr/client",
+    "start": "npm run start -w @gitgopr/server",
+    "clean": "npm run clean -w @gitgopr/client",
+    "install:all": "npm install && npm install -w @gitgopr/client && npm install -w @gitgopr/server"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
