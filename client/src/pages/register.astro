@@ -139,7 +139,7 @@ import Navbar from '../components/Navbar.astro';
 
 <script>
   const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
-
+  let userData;
   async function loadUserData() {
     try {
       const response = await fetch(API_BASE + '/auth/me', {
@@ -152,12 +152,11 @@ import Navbar from '../components/Navbar.astro';
         return;
       }
 
-      const userData = await response.json();
-      
+      userData = await response.json();
       // Populate user info
-      document.getElementById('user-avatar').src = userData.avatar_url || '/default-avatar.png';
-      document.getElementById('user-name').textContent = userData.display_name || userData.username;
-      document.getElementById('user-username').textContent = '@' + userData.username;
+      document.getElementById('user-avatar').src = userData.user.photos[0].value || '/default-avatar.png';
+      document.getElementById('user-name').textContent = userData.user.display_name || userData.user.username;
+      document.getElementById('user-username').textContent = '@' + userData.user.username;
 
       // Pre-fill full name if available
       if (userData.display_name) {
@@ -179,26 +178,7 @@ import Navbar from '../components/Navbar.astro';
     }
   }
 
-  function toggleYearField() {
-    const role = document.getElementById('role').value;
-    const yearField = document.getElementById('year-field');
-    const yearSelect = document.getElementById('year');
-    
-    if (role === 'Instructor') {
-      // Hide year field for instructors
-      yearField.style.display = 'none';
-      yearSelect.removeAttribute('required');
-      yearSelect.value = ''; // Clear selection
-    } else if (role === 'Student') {
-      // Show year field for students
-      yearField.style.display = 'block';
-      yearSelect.setAttribute('required', 'required');
-    } else {
-      // No role selected, hide year field
-      yearField.style.display = 'block';
-      yearSelect.setAttribute('required', 'required');
-    }
-  }
+  
 
   async function submitProfile(event) {
     event.preventDefault();
@@ -218,9 +198,13 @@ import Navbar from '../components/Navbar.astro';
         role: role,
         college: formData.get('college'),
         year: role === 'Student' ? formData.get('year') : null,
-        instructor: formData.get('instructor') || null
+        instructor: formData.get('instructor') || null,
+        display_name: userData?.user.displayName || userData?.user.username || null,
+        avatar_url: userData?.user.photos[0].value || null,
+        github_id: userData?.user.username || null,
+        pr_count: 0,
+        username: userData?.user.username || null
       };
-
       const response = await fetch(API_BASE + '/user/profile', {
         method: 'POST',
         headers: {
@@ -256,4 +240,26 @@ import Navbar from '../components/Navbar.astro';
 
   document.getElementById('profile-data-form').addEventListener('submit', submitProfile);
   loadUserData();
+</script>
+<script is:inline>
+  function toggleYearField() {
+    const role = document.getElementById('role').value;
+    const yearField = document.getElementById('year-field');
+    const yearSelect = document.getElementById('year');
+    
+    if (role === 'Instructor') {
+      // Hide year field for instructors
+      yearField.style.display = 'none';
+      yearSelect.removeAttribute('required');
+      yearSelect.value = ''; // Clear selection
+    } else if (role === 'Student') {
+      // Show year field for students
+      yearField.style.display = 'block';
+      yearSelect.setAttribute('required', 'required');
+    } else {
+      // No role selected, hide year field
+      yearField.style.display = 'block';
+      yearSelect.setAttribute('required', 'required');
+    }
+  }
 </script>
