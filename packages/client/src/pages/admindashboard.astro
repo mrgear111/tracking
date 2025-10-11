@@ -94,7 +94,7 @@ import Navbar from '../components/Navbar.astro';
 </Layout>
 
 <script>
-  const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
+  const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000';
   let adminPassword = localStorage.getItem('adminPassword') || '';
 
   // Check if admin is authenticated
@@ -116,7 +116,7 @@ import Navbar from '../components/Navbar.astro';
     
     try {
       // Load stats with admin password
-      const statsResponse = await fetch(API_BASE + '/admin/stats?adminPassword=' + encodeURIComponent(adminPassword));
+      const statsResponse = await fetch(API_BASE + '/api/admin/stats?adminPassword=' + encodeURIComponent(adminPassword));
       
       if (statsResponse.status === 401) {
         localStorage.removeItem('adminPassword');
@@ -131,7 +131,7 @@ import Navbar from '../components/Navbar.astro';
       document.getElementById('open-prs').textContent = stats.openPRs;
       document.getElementById('merged-prs').textContent = stats.mergedPRs;
 
-      const usersResponse = await fetch(API_BASE + '/admin/users?adminPassword=' + encodeURIComponent(adminPassword));
+      const usersResponse = await fetch(API_BASE + '/api/admin/users?adminPassword=' + encodeURIComponent(adminPassword));
       
       if (usersResponse.status === 401) {
         localStorage.removeItem('adminPassword');
@@ -186,7 +186,7 @@ import Navbar from '../components/Navbar.astro';
   async function viewUserPRs(userId, username) {
     try {
       const adminPassword = localStorage.getItem('adminPassword');
-      const response = await fetch(API_BASE + '/admin/users/' + userId + '/prs?adminPassword=' + encodeURIComponent(adminPassword));
+      const response = await fetch(API_BASE + '/api/admin/users/' + userId + '/prs?adminPassword=' + encodeURIComponent(adminPassword));
       
       if (response.status === 401) {
         localStorage.removeItem('adminPassword');
@@ -248,7 +248,7 @@ import Navbar from '../components/Navbar.astro';
     
     try {
       const adminPassword = localStorage.getItem('adminPassword');
-      const response = await fetch(API_BASE + '/admin/refresh-all?adminPassword=' + encodeURIComponent(adminPassword), {
+      const response = await fetch(API_BASE + '/api/admin/refresh-all?adminPassword=' + encodeURIComponent(adminPassword), {
         method: 'POST'
       });
       

@@ -94,15 +94,15 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
 
     if (error || !user || !user.full_name || !user.role || !user.college) {
       // User needs to complete profile (year is optional for instructors)
-      res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+      res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:4000') + '/register');
     } else {
       // User has completed profile, go to success page
-      res.redirect(process.env.CLIENT_SUCCESS_REDIRECT || 'http://localhost:3000/login?auth=success');
+      res.redirect(process.env.CLIENT_SUCCESS_REDIRECT || 'http://localhost:4000/login?auth=success');
     }
   } catch (error) {
     console.error('Error checking user profile:', error);
     // Fallback to register page on error
-    res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+    res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:4000') + '/register');
   }
 });
 
@@ -191,7 +191,7 @@ app.post('/user/profile', express.json(), async (req, res) => {
 app.get('/auth/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) return next(err);
-    res.redirect(process.env.CLIENT_LOGOUT_REDIRECT || 'http://localhost:3000/login');
+    res.redirect(process.env.CLIENT_LOGOUT_REDIRECT || 'http://localhost:4000/login');
   });
 });
 
@@ -310,7 +310,7 @@ function requireAdminAuth(req, res, next) {
 }
 
 // Admin routes - protected
-app.get('/admin/users', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/users', requireAdminAuth, async (req, res) => {
   try {
     const { data: users, error } = await supabase
       .from('users')
@@ -327,7 +327,7 @@ app.get('/admin/users', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.get('/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -348,7 +348,7 @@ app.get('/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
 });
 
 // Manual refresh endpoint for admin
-app.post('/admin/refresh-all', requireAdminAuth, async (req, res) => {
+app.post('/api/admin/refresh-all', requireAdminAuth, async (req, res) => {
   try {
     console.log('🔄 Manual refresh triggered by admin...');
     
@@ -398,7 +398,7 @@ app.post('/admin/refresh-all', requireAdminAuth, async (req, res) => {
 });
 
 // Public leaderboard endpoint - shows users sorted by merged PR count
-app.get('/leaderboard', async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
   try {
     // Get users with their merged PR counts
     const { data: users, error: usersError } = await supabase
@@ -440,7 +440,7 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
-app.get('/admin/stats', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/stats', requireAdminAuth, async (req, res) => {
   try {
     const { data: users, error: usersError } = await supabase
       .from('users')

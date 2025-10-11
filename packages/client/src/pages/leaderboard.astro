@@ -57,7 +57,7 @@ import Footer from "../components/Footer.astro";
 </Layout>
 
 <script>
-  const API_BASE = (import.meta as any).env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
+  const API_BASE = '';  // Same origin, no need for full URL
   
   interface LeaderboardEntry {
     username: string;
@@ -69,7 +69,7 @@ import Footer from "../components/Footer.astro";
   
   async function loadLeaderboard() {
     try {
-      const res = await fetch(API_BASE + '/leaderboard');
+      const res = await fetch('/api/leaderboard');
       
       if (!res.ok) {
         throw new Error('API Error: ' + res.status + ' ' + res.statusText);
