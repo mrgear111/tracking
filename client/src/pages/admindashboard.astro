@@ -126,10 +126,15 @@ import Navbar from '../components/Navbar.astro';
       }
       
       const stats = await statsResponse.json();
-      document.getElementById('total-users').textContent = stats.totalUsers;
-      document.getElementById('total-prs').textContent = stats.totalPRs;
-      document.getElementById('open-prs').textContent = stats.openPRs;
-      document.getElementById('merged-prs').textContent = stats.mergedPRs;
+      const totalUsersEl = document.getElementById('total-users');
+      const totalPRsEl = document.getElementById('total-prs');
+      const openPRsEl = document.getElementById('open-prs');
+      const mergedPRsEl = document.getElementById('merged-prs');
+      
+      if (totalUsersEl) totalUsersEl.textContent = stats.totalUsers;
+      if (totalPRsEl) totalPRsEl.textContent = stats.totalPRs;
+      if (openPRsEl) openPRsEl.textContent = stats.openPRs;
+      if (mergedPRsEl) mergedPRsEl.textContent = stats.mergedPRs;
 
       const usersResponse = await fetch(API_BASE + '/admin/users?adminPassword=' + encodeURIComponent(adminPassword));
       
@@ -142,9 +147,11 @@ import Navbar from '../components/Navbar.astro';
       
       const usersData = await usersResponse.json();
       const tableBody = document.getElementById('users-table-body');
+      if (!tableBody) return;
+      
       tableBody.innerHTML = '';
 
-      usersData.users.forEach(user => {
+      usersData.users.forEach((user: any) => {
         const row = document.createElement('tr');
         row.className = 'hover:bg-gray-800 border-t border-green-700';
         
@@ -174,18 +181,24 @@ import Navbar from '../components/Navbar.astro';
         tableBody.appendChild(row);
       });
 
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('dashboard-content').classList.remove('hidden');
+      const loadingEl = document.getElementById('loading');
+      const dashboardEl = document.getElementById('dashboard-content');
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (dashboardEl) dashboardEl.classList.remove('hidden');
     } catch (error) {
       console.error('Error loading dashboard data:', error);
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('error').classList.remove('hidden');
+      const loadingEl = document.getElementById('loading');
+      const errorEl = document.getElementById('error');
+      if (loadingEl) loadingEl.classList.add('hidden');
+      if (errorEl) errorEl.classList.remove('hidden');
     }
   }
 
-  async function viewUserPRs(userId, username) {
+  async function viewUserPRs(userId: number, username: string) {
     try {
       const adminPassword = localStorage.getItem('adminPassword');
+      if (!adminPassword) return;
+      
       const response = await fetch(API_BASE + '/admin/users/' + userId + '/prs?adminPassword=' + encodeURIComponent(adminPassword));
       
       if (response.status === 401) {
@@ -198,13 +211,15 @@ import Navbar from '../components/Navbar.astro';
       const data = await response.json();
       const modalTitle = document.getElementById('modal-title');
       const modalContent = document.getElementById('modal-content');
+      if (!modalTitle || !modalContent) return;
+      
       modalTitle.textContent = 'PRs by @' + username;
       
       if (data.prs.length === 0) {
         modalContent.innerHTML = '<p class="text-green-300 font-mono">No PRs found.</p>';
       } else {
         let html = '<div class="space-y-4">';
-        data.prs.forEach(pr => {
+        data.prs.forEach((pr: any) => {
           const createdDate = new Date(pr.created_at).toLocaleDateString();
           const statusIcon = pr.state === 'open' ? '🟢' : '🟣';
           html += '<div class="border border-green-700 rounded-lg p-4"><div class="flex justify-between items-start mb-2"><h4 class="text-green-100 font-mono">' + statusIcon + ' ' + pr.title + '</h4><span class="text-green-400 text-sm font-mono">#' + pr.pr_number + '</span></div><p class="text-green-300 text-sm font-mono mb-2">' + pr.repository + '</p><p class="text-green-400 text-sm font-mono mb-2">Created: ' + createdDate + '</p><a href="' + pr.url + '" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm font-mono">View on GitHub →</a></div>';
@@ -212,28 +227,36 @@ import Navbar from '../components/Navbar.astro';
         html += '</div>';
         modalContent.innerHTML = html;
       }
-      document.getElementById('pr-modal').classList.remove('hidden');
+      const prModalEl = document.getElementById('pr-modal');
+      if (prModalEl) prModalEl.classList.remove('hidden');
     } catch (error) {
       console.error('Error loading user PRs:', error);
     }
   }
 
-  document.getElementById('close-modal').addEventListener('click', () => {
-    document.getElementById('pr-modal').classList.add('hidden');
-  });
+  const closeModalBtn = document.getElementById('close-modal');
+  const prModal = document.getElementById('pr-modal');
+  
+  if (closeModalBtn && prModal) {
+    closeModalBtn.addEventListener('click', () => {
+      prModal.classList.add('hidden');
+    });
 
-  document.getElementById('pr-modal').addEventListener('click', (e) => {
-    if (e.target.id === 'pr-modal') {
-      document.getElementById('pr-modal').classList.add('hidden');
-    }
-  });
+    prModal.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).id === 'pr-modal') {
+        prModal.classList.add('hidden');
+      }
+    });
+  }
 
   // Manual refresh all PRs function
   async function refreshAllPRs() {
-    const refreshBtn = document.getElementById('refresh-all-btn');
+    const refreshBtn = document.getElementById('refresh-all-btn') as HTMLButtonElement | null;
     const refreshIcon = document.getElementById('refresh-icon');
     const refreshText = document.getElementById('refresh-text');
     const refreshStatus = document.getElementById('refresh-status');
+    
+    if (!refreshBtn || !refreshIcon || !refreshText || !refreshStatus) return;
     
     // Disable button and show loading state
     refreshBtn.disabled = true;
@@ -248,6 +271,8 @@ import Navbar from '../components/Navbar.astro';
     
     try {
       const adminPassword = localStorage.getItem('adminPassword');
+      if (!adminPassword) return;
+      
       const response = await fetch(API_BASE + '/admin/refresh-all?adminPassword=' + encodeURIComponent(adminPassword), {
         method: 'POST'
       });
@@ -289,8 +314,11 @@ import Navbar from '../components/Navbar.astro';
   }
 
   // Add event listener to refresh button
-  document.getElementById('refresh-all-btn').addEventListener('click', refreshAllPRs);
+  const refreshAllBtn = document.getElementById('refresh-all-btn');
+  if (refreshAllBtn) {
+    refreshAllBtn.addEventListener('click', refreshAllPRs);
+  }
 
   loadDashboardData();
-  window.viewUserPRs = viewUserPRs;
+  (window as any).viewUserPRs = viewUserPRs;
 </script>
