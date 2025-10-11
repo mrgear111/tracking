@@ -55,7 +55,7 @@
       <a href="/leaderboard" class="text-green-100 hover:text-green-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
         Leaderboard
       </a>
-      <a id="register-link-mobile" href="/register" class="hidden text-yellow-400 hover:text-yellow-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
+      <a id="register-link-mobile" href="/register" class="text-yellow-400 hover:text-yellow-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
         ⚠️ Complete Profile
       </a>
       <a href="/login" class="text-green-100 hover:text-green-300 block px-3 py-2 rounded-md text-base font-medium font-mono">
@@ -78,10 +78,10 @@
 
 <script>
   async function renderAuthArea() {
-    const authArea = document.getElementById('auth-area');
-    const loginLinks = document.querySelectorAll('a[href="/login"]');
-    const registerLink = document.getElementById('register-link');
-    const registerLinkMobile = document.getElementById('register-link-mobile');
+    const authArea = document.getElementById('auth-area') as HTMLElement;
+    const loginLinks = document.querySelectorAll('a[href="/login"]') as NodeListOf<HTMLElement>;
+    const registerLink = document.getElementById('register-link') as HTMLElement;
+    const registerLinkMobile = document.getElementById('register-link-mobile') as HTMLElement;
     const API_BASE = import.meta.env.MODE == 'development' ? 'http://localhost:4000' : '';
     
     try {
