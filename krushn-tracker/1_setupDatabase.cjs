@@ -38,7 +38,6 @@ const setupDatabase = async () => {
     await GitHubPR.deleteMany({})
     console.log('Cleared existing data')
 
-
     // Insert colleges
     const collegeDocs = await College.insertMany(
       colleges.map((name) => ({ name }))
@@ -78,7 +77,13 @@ const setupDatabase = async () => {
         github_id: userData.github_id,
         full_name: userData.full_name || '',
         college: college ? college._id : null,
-        year: userData.year ? ['1st Year', '2nd Year', '3rd Year', '4th Year'].includes(userData.year) ? userData.year : null : null,
+        year: userData.year
+          ? ['1st Year', '2nd Year', '3rd Year', '4th Year'].includes(
+              userData.year
+            )
+            ? userData.year
+            : null
+          : null,
         role: userData.role?.toLowerCase() || 'student',
       })
 
