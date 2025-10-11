@@ -82,10 +82,10 @@
     const loginLinks = document.querySelectorAll('a[href="/login"]');
     const registerLink = document.getElementById('register-link');
     const registerLinkMobile = document.getElementById('register-link-mobile');
-    const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000';
+    const API_BASE = import.meta.env.MODE == 'development' ? 'http://localhost:4000' : '';
     
     try {
-      const res = await fetch(API_BASE + '/auth/me', { credentials: 'include' });
+      const res = await fetch(API_BASE + '/api/auth/me', { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
         if (data.authenticated && data.user) {

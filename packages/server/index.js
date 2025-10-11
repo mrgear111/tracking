@@ -92,9 +92,9 @@ passport.use(new GitHubStrategy({
 const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
 app.use(express.static(clientDistPath));
 
-app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+app.get('/api/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
-app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth/failure' }), async (req, res) => {
+app.get('/api/auth/github/callback', passport.authenticate('github', { failureRedirect: '/api/auth/failure' }), async (req, res) => {
   try {
     // Check if user has completed profile
     const username = req.user.username || req.user.login;
@@ -127,7 +127,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.get('/auth/me', async (req, res) => {
+app.get('/api/auth/me', async (req, res) => {
   if (!req.user) return res.status(401).json({ authenticated: false });
   
   try {
@@ -166,7 +166,7 @@ app.get('/auth/me', async (req, res) => {
 });
 
 // Update user profile (full_name, role, college, year, instructor) - requires user session
-app.post('/user/profile', express.json(), async (req, res) => {
+app.post('/api/user/profile', express.json(), async (req, res) => {
   try {
     if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
 
@@ -200,7 +200,7 @@ app.post('/user/profile', express.json(), async (req, res) => {
   }
 });
 
-app.get('/auth/logout', (req, res, next) => {
+app.get('/api/auth/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) return next(err);
     res.redirect(process.env.CLIENT_LOGOUT_REDIRECT || 'http://localhost:4000/login');
@@ -483,8 +483,6 @@ app.get('/api/admin/stats', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => res.send('Auth server running'));
-
 // Background job: Refresh all users' PR counts every hour
 async function refreshAllUsersPRs() {
   console.log('Starting scheduled PR refresh for all users...');
@@ -529,7 +527,7 @@ async function refreshAllUsersPRs() {
 // Fallback for client-side routing - serve index.html for non-API routes
 app.get('*', (req, res) => {
   // Skip API routes
-  if (req.path.startsWith('/auth') || req.path.startsWith('/api')) {
+  if (req.path.startsWith('/api')) {
     return res.status(404).json({ error: 'API endpoint not found' });
   }
   
