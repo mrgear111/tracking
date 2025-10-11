@@ -60,14 +60,15 @@ npm start
 ### Server (.env)
 - `GITHUB_CLIENT_ID`=OAuth app ID
 - `GITHUB_CLIENT_SECRET`=OAuth secret  
-- `GITHUB_TOKEN`=Personal access token
+- `GITHUB_CALLBACK_URL`=Personal access token
 - `SUPABASE_URL`=Database URL
 - `SUPABASE_ANON_KEY`=Database key
 - `SUPABASE_SERVICE_ROLE_KEY`=Database Service Role key
 - `SESSION_SECRET`=Session encryption
 - `ADMIN_PASSWORD`=Admin access
 - `CLIENT_ORIGIN`=Frontend URL
-- `ADMIN_PASSWORD`=your_admin_password
+- `CLIENT_SUCCESS_REDIRECT`=Redirect Url After login
+- `CLIENT_LOGOUT_REDIRECT`=Redirect Url After logout
 
 ### Client (.env)  
 - `PUBLIC_API_BASE_URL`=Backend URL
