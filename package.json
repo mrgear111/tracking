@@ -1,0 +1,40 @@
+{
+  "name": "gitgopr",
+  "version": "1.0.0",
+  "description": "GITGOPR - PR Tracking Platform",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm:dev:*\"",
+    "dev:client": "npm run dev -w @gitgopr/client",
+    "dev:server": "npm run dev -w @gitgopr/server",
+    "build": "npm run build -w @gitgopr/client",
+    "build:client": "npm run build -w @gitgopr/client",
+    "start": "npm run start -w @gitgopr/server",
+    "clean": "npm run clean -w @gitgopr/client",
+    "install:all": "npm install && npm install -w @gitgopr/client && npm install -w @gitgopr/server"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nst-sdc/git-go-pr.git"
+  },
+  "keywords": [
+    "hacktoberfest",
+    "github",
+    "pr-tracking",
+    "student",
+    "education"
+  ],
+  "author": "NSTSDC",
+  "license": "MIT"
+}

@@ -82,7 +82,7 @@
     const loginLinks = document.querySelectorAll('a[href="/login"]');
     const registerLink = document.getElementById('register-link');
     const registerLinkMobile = document.getElementById('register-link-mobile');
-    const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'https://tracking-production-0c48.up.railway.app';
+    const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:4000';
     
     try {
       const res = await fetch(API_BASE + '/auth/me', { credentials: 'include' });

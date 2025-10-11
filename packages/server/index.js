@@ -4,19 +4,46 @@ import passport from 'passport';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase, createTablesManually } from './supabase.js';
 import { storeUserAndPRs, refreshUserPRs } from './prService.js';
 import cron from 'node-cron';
 
 dotenv.config();
 
+// Get __dirname equivalent for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
+
 const app = express();
 
+// Middleware to ensure database is initialized for serverless
+app.use(async (req, res, next) => {
+  try {
+    // Initialize database tables if needed (for serverless cold starts)
+    if (process.env.NODE_ENV === 'production') {
+      await createTablesManually();
+    }
+    next();
+  } catch (error) {
+    console.error('Database initialization error:', error);
+    next(); // Continue anyway
+  }
+});
 
 app.set('trust proxy', 1);
 
+// Parse JSON bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors({ 
-  origin: process.env.CLIENT_ORIGIN || 'http://localhost:3000', 
+  origin: process.env.NODE_ENV === 'production' 
+    ? [process.env.CLIENT_ORIGIN, process.env.VERCEL_URL] 
+    : ['http://localhost:4000', 'http://localhost:4321'], // Astro default port
   credentials: true 
 }));
 
@@ -41,7 +68,9 @@ passport.deserializeUser((obj, done) => done(null, obj));
 passport.use(new GitHubStrategy({
   clientID: process.env.GITHUB_CLIENT_ID,
   clientSecret: process.env.GITHUB_CLIENT_SECRET,
-  callbackURL: process.env.GITHUB_CALLBACK_URL || 'http://localhost:4000/auth/github/callback',
+  callbackURL: process.env.GITHUB_CALLBACK_URL || (process.env.NODE_ENV === 'production' 
+    ? '/api/auth/github/callback' 
+    : 'http://localhost:4000/auth/github/callback'),
 }, async (accessToken, refreshToken, profile, done) => {
   // Store user and fetch PRs in background
   profile.accessToken = accessToken;
@@ -59,6 +88,10 @@ passport.use(new GitHubStrategy({
   return done(null, profile);
 }));
 
+// Serve static files from Astro build output
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+app.use(express.static(clientDistPath));
+
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/auth/failure' }), async (req, res) => {
@@ -73,16 +106,25 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
 
     if (error || !user || !user.full_name || !user.role || !user.college) {
       // User needs to complete profile (year is optional for instructors)
-      res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+      res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:4000') + '/register');
     } else {
       // User has completed profile, go to success page
-      res.redirect(process.env.CLIENT_SUCCESS_REDIRECT || 'http://localhost:3000/login?auth=success');
+      res.redirect(process.env.CLIENT_SUCCESS_REDIRECT || 'http://localhost:4000/login?auth=success');
     }
   } catch (error) {
     console.error('Error checking user profile:', error);
     // Fallback to register page on error
-    res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:3000') + '/register');
+    res.redirect((process.env.CLIENT_ORIGIN || 'http://localhost:4000') + '/register');
   }
+});
+
+// Health check route for Vercel
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 app.get('/auth/me', async (req, res) => {
@@ -161,7 +203,7 @@ app.post('/user/profile', express.json(), async (req, res) => {
 app.get('/auth/logout', (req, res, next) => {
   req.logout((err) => {
     if (err) return next(err);
-    res.redirect(process.env.CLIENT_LOGOUT_REDIRECT || 'http://localhost:3000/login');
+    res.redirect(process.env.CLIENT_LOGOUT_REDIRECT || 'http://localhost:4000/login');
   });
 });
 
@@ -280,7 +322,7 @@ function requireAdminAuth(req, res, next) {
 }
 
 // Admin routes - protected
-app.get('/admin/users', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/users', requireAdminAuth, async (req, res) => {
   try {
     const { data: users, error } = await supabase
       .from('users')
@@ -297,7 +339,7 @@ app.get('/admin/users', requireAdminAuth, async (req, res) => {
   }
 });
 
-app.get('/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
   try {
     const { userId } = req.params;
     
@@ -318,7 +360,7 @@ app.get('/admin/users/:userId/prs', requireAdminAuth, async (req, res) => {
 });
 
 // Manual refresh endpoint for admin
-app.post('/admin/refresh-all', requireAdminAuth, async (req, res) => {
+app.post('/api/admin/refresh-all', requireAdminAuth, async (req, res) => {
   try {
     console.log('🔄 Manual refresh triggered by admin...');
     
@@ -368,7 +410,7 @@ app.post('/admin/refresh-all', requireAdminAuth, async (req, res) => {
 });
 
 // Public leaderboard endpoint - shows users sorted by merged PR count
-app.get('/leaderboard', async (req, res) => {
+app.get('/api/leaderboard', async (req, res) => {
   try {
     // Get users with their merged PR counts
     const { data: users, error: usersError } = await supabase
@@ -410,7 +452,7 @@ app.get('/leaderboard', async (req, res) => {
   }
 });
 
-app.get('/admin/stats', requireAdminAuth, async (req, res) => {
+app.get('/api/admin/stats', requireAdminAuth, async (req, res) => {
   try {
     const { data: users, error: usersError } = await supabase
       .from('users')
@@ -484,23 +526,44 @@ async function refreshAllUsersPRs() {
   }
 }
 
-// Schedule cron job to run every hour at minute 0
-// Format: minute hour day month dayOfWeek
-cron.schedule('0 * * * *', refreshAllUsersPRs, {
-  scheduled: true,
-  timezone: "Asia/Kolkata"
+// Fallback for client-side routing - serve index.html for non-API routes
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/auth') || req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+  
+  // Serve index.html for client-side routing
+  const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
+    if (err) {
+      console.error('Error serving index.html:', err);
+      res.status(404).send('Page not found - Make sure to build the client first: npm run build:client');
+    }
+  });
 });
 
-console.log(' Scheduled job: Refresh all users PRs every hour');
+// For Vercel serverless deployment, export the app
+export default app;
 
-const port = process.env.PORT || 4000;
-app.listen(port, async () => {
-  console.log(`Auth server listening on http://localhost:${port}`);
-  
-  // Initialize database tables
-  await createTablesManually();
-  
-  // Run initial refresh on startup (optional)
-  console.log('Running initial PR refresh on startup...');
-  setTimeout(() => refreshAllUsersPRs(), 5000); // Wait 5 seconds after startup
-});
+// For local development, still listen on port
+if (process.env.NODE_ENV !== 'production') {
+  const port = process.env.PORT || 4000;
+  app.listen(port, async () => {
+    console.log(`Auth server listening on http://localhost:${port}`);
+    
+    // Initialize database tables
+    await createTablesManually();
+    
+    // // Schedule cron job only in development
+    // cron.schedule('0 * * * *', refreshAllUsersPRs, {
+    //   scheduled: true,
+    //   timezone: "Asia/Kolkata"
+    // });
+    // console.log('✓ Scheduled job: Refresh all users PRs every hour');
+    
+    // // Run initial refresh on startup (optional)
+    // console.log('Running initial PR refresh on startup...');
+    // setTimeout(() => refreshAllUsersPRs(), 5000); // Wait 5 seconds after startup
+  });
+}
