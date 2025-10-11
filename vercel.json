@@ -3,8 +3,12 @@
   "buildCommand": "npm run build:client",
   "outputDirectory": "packages/client/dist",
   "functions": {
-    "api/[...all].mjs": {
+    "api/bridge.mjs": {
       "maxDuration": 30
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api", "destination": "/api/bridge?path=" },
+    { "source": "/api/:path*", "destination": "/api/bridge?path=:path*" }
+  ]
 }
